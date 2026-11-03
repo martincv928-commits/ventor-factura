@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portal de cliente</title><style>
+:root{--bg:#f6f6f7;--card:#fff;--tx:#18181b;--mu:#6b6b73;--bd:#dcdce0;--rd:#d7263d;--ok:#0f9d68;--am:#d97706}
+@media(prefers-color-scheme:dark){:root{--bg:#0e0e10;--card:#18181b;--tx:#f4f4f5;--mu:#a1a1aa;--bd:#2e2e33;--ok:#34d399;--am:#fbbf24}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:24px}
+header{padding:18px 16px;background:var(--rd);color:#fff}h1{font-size:20px;margin:0}.sub{font-size:13px;opacity:.9;margin-top:3px}
+.w{max-width:760px;margin:0 auto;padding:0 16px}
+input{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px;font-family:inherit;margin-bottom:10px}
+label{display:block;font-size:12.5px;color:var(--mu);margin:0 0 4px}
+.btn{display:block;width:100%;padding:12px;border:0;border-radius:9px;background:var(--rd);color:#fff;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none}
+.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn:disabled{opacity:.5}.sm{display:inline-block;width:auto;padding:8px 12px;font-size:13px;border-radius:8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:10px 0}.big{font-size:30px;font-weight:800}.mu{color:var(--mu);font-size:13px}
+.row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:14px}
+.tabs{display:flex;gap:6px;margin:12px 0;overflow-x:auto}.tabs div{flex:0 0 auto;text-align:center;padding:9px 14px;border:1px solid var(--bd);border-radius:20px;font-size:13px;cursor:pointer;background:var(--card);white-space:nowrap}.tabs div.on{background:var(--rd);color:#fff;border-color:var(--rd);font-weight:700}
+.err{color:var(--rd);font-size:14px}.ok{color:var(--ok);font-weight:700}.ven{color:#dc2626;font-weight:700}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}.sh{background:var(--card);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:34px;height:34px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:18px}
+.pie{text-align:center;font-size:12px;color:var(--mu);padding:14px}
+@media print{header,.tabs,.btn,.pie{display:none!important}body{background:#fff;color:#000}.card{border:1px solid #999}}
+</style></head><body><div id="app"><div class="w" style="padding-top:30px">Cargando…</div></div>
+<script>
+const KEY="sb_publishable_p0-ZWH8XPPyC_KSTOzG9vw_OENVq8o-";
+const API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-portal";
+const money=n=>"$"+Number(n||0).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fd=f=>{try{return new Date(f).toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return ""}};
+const app=document.getElementById("app");const Q=new URLSearchParams(location.search);
+const E=String(Q.get("e")||"").toLowerCase(),T=String(Q.get("t")||"");
+let D=null,tab="saldo",cart={},msg="";
+async function call(o){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({e:E,t:T,...o})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("Error "+r.status));return j}
+function fail(m){app.innerHTML='<div class="w" style="padding-top:30px"><h1>Portal de cliente</h1><p class="err">'+esc(m)+'</p></div>'}
+function tabs(){const c=D.cfg,t=[];if(c.saldo)t.push(["saldo","Mi cuenta"]);if(c.compras)t.push(["compras","Compras"]);if(c.facturas)t.push(["fact","Facturas"]);if(c.cotizaciones&&(D.cotizaciones||[]).length)t.push(["cot","Cotizaciones ("+D.cotizaciones.length+")"]);if(c.soporte)t.push(["sop","Soporte"+((D.tickets||[]).filter(x=>["resuelto","cerrado"].indexOf(x.estado)<0).length?" ("+D.tickets.filter(x=>["resuelto","cerrado"].indexOf(x.estado)<0).length+")":"")]);return t}
+function pinta(){
+ const c=D.cfg;const ts=tabs();if(!ts.find(x=>x[0]===tab)&&ts.length)tab=ts[0][0];
+ const h=['<header><div class="w"><h1>'+esc(D.empresa)+'</h1><div class="sub">Hola, '+esc(D.cliente.nombre)+(c.mensaje?' · '+esc(c.mensaje):'')+'</div></div></header><div class="w">'];
+ h.push('<div class="tabs">'+ts.map(x=>'<div class="'+(tab===x[0]?'on':'')+'" onclick="tab=\''+x[0]+'\';msg=\'\';pinta()">'+x[1]+'</div>').join('')+'</div>');
+ if(msg)h.push('<div class="card '+(msg[0]==="⚠"?"err":"ok")+'">'+esc(msg)+'</div>');
+ if(tab==="saldo"){
+  const venc=(D.adeudos||[]).filter(a=>a.vencido).reduce((s,a)=>s+a.saldo,0);
+  h.push('<div class="card"><div class="mu">Saldo pendiente</div><div class="big" style="color:'+(D.saldo>0?'#dc2626':'var(--ok)')+'">'+money(D.saldo)+'</div>'+(venc>0?'<div class="ven">Vencido: '+money(venc)+'</div>':'')+(D.cliente.limite?'<div class="mu">Límite de crédito '+money(D.cliente.limite)+' · disponible '+money(Math.max(0,D.cliente.limite-D.saldo))+'</div>':'')+(c.puntos&&D.cliente.puntos?'<div class="mu">Puntos: '+D.cliente.puntos+'</div>':'')+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+(c.pagos&&D.saldo>0?'<button class="btn sm" onclick="pagar()">Pagar en línea</button>':'')+(c.estado?'<button class="btn sec sm" onclick="window.print()">Estado de cuenta (PDF)</button>':'')+(D.whatsapp?'<a class="btn sec sm" href="https://wa.me/'+D.whatsapp.replace(/\D/g,'')+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div></div>');
+  if((D.adeudos||[]).length)h.push('<h3 style="margin:16px 0 4px">Documentos pendientes</h3>'+D.adeudos.map(a=>'<div class="card"><div class="row"><b>'+esc(a.folio)+'</b><b>'+money(a.saldo)+'</b></div><div class="mu">'+fd(a.fecha)+' · total '+money(a.total)+(a.vence?' · '+(a.vencido?'<span class="ven">venció '+fd(a.vence)+'</span>':'vence '+fd(a.vence)):'')+'</div>'+(a.abonos.length?'<div class="mu" style="margin-top:4px">Abonos: '+a.abonos.map(x=>fd(x.fecha)+' '+money(x.monto)).join(' · ')+'</div>':'')+'</div>').join(''));
+  else h.push('<div class="card mu">No tienes adeudos. ¡Gracias!</div>');
+ }
+ if(tab==="compras"){
+  if(!(D.compras||[]).length)h.push('<div class="card mu">Aún no hay compras.</div>');
+  (D.compras||[]).forEach((x,i)=>h.push('<div class="card"><div class="row"><b>'+fd(x.fecha)+' · '+esc(x.folio)+'</b><b>'+money(x.total)+'</b></div><div class="mu">'+x.lineas.map(l=>esc(l.cantidad+' × '+l.nombre)).join(', ')+'</div>'+(c.pedidos?'<button class="btn sec sm" style="margin-top:8px" onclick="repetir('+i+')">Repetir este pedido</button>':'')+'</div>'));
+ }
+ if(tab==="fact"){
+  if(!(D.facturas||[]).length)h.push('<div class="card mu">Aún no tienes facturas emitidas.</div>');
+  (D.facturas||[]).forEach(x=>h.push('<div class="card"><div class="row"><b>'+esc(x.folio)+' · '+fd(x.factura.fecha||x.fecha)+'</b><b>'+money(x.total)+'</b></div><div class="mu" style="word-break:break-all">UUID '+esc(x.factura.uuid)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sec sm" onclick="archivo(\''+esc(x.factura.uuid)+'\',\'pdf\')">PDF</button><button class="btn sec sm" onclick="archivo(\''+esc(x.factura.uuid)+'\',\'xml\')">XML</button><button class="btn sec sm" onclick="mail(\''+esc(x.factura.uuid)+'\')">Enviar a mi correo</button></div></div>'));
+ }
+ if(tab==="cot"){
+  (D.cotizaciones||[]).forEach(x=>h.push('<div class="card"><div class="row"><b>'+esc(x.folio)+'</b><b>'+money(x.total)+'</b></div><div class="mu">'+fd(x.fecha)+(x.vence?' · vigente hasta '+fd(x.vence):'')+' · '+esc(x.estado)+'</div>'+(x.token?'<a class="btn sm" style="margin-top:8px" href="cotizacion.html?e='+encodeURIComponent(D.codigo)+'&t='+encodeURIComponent(x.token)+'">Ver y aprobar</a>':'')+'</div>'));
+ }
+ if(tab==="sop"){
+  const EST={abierto:"Abierto",proceso:"En proceso",espera:"Esperando tu respuesta",resuelto:"Resuelto",cerrado:"Cerrado"};
+  h.push('<div class="card"><b>¿Necesitas ayuda?</b><div class="mu" style="margin:4px 0 8px">Abre un ticket y te respondemos aquí y por WhatsApp.</div><label>Asunto</label><input id="tka" placeholder="Ej. Producto llegó dañado"><label>Detalle</label><textarea id="tkd" rows="3" style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;margin-bottom:10px"></textarea><label>Urgencia</label><select id="tkp" style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);margin-bottom:10px"><option value="baja">Baja</option><option value="media" selected>Media</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select><button class="btn" onclick="nuevoTk()">Enviar ticket</button></div>');
+  (D.tickets||[]).forEach((t,i)=>{h.push('<div class="card"><div class="row"><b>'+esc(t.folio)+' · '+esc(t.asunto)+'</b><span class="mu">'+esc(EST[t.estado]||t.estado)+'</span></div><div class="mu">'+fd(t.creado)+'</div>'+(t.msgs||[]).map(m=>'<div style="margin-top:8px;padding:8px 10px;border-radius:9px;background:'+(m.cliente?'var(--bg)':'rgba(59,130,246,.12)')+'"><div class="mu">'+(m.cliente?'Tú':'Respuesta')+' · '+fd(m.fecha)+'</div>'+esc(m.txt)+'</div>').join('')+(["cerrado"].indexOf(t.estado)<0?'<div style="display:flex;gap:6px;margin-top:8px"><input id="tm'+i+'" placeholder="Escribe un mensaje" style="margin:0"><button class="btn" onclick="msgTk('+i+')">Enviar</button></div>':'')+'</div>')});
+ }
+ h.push('</div><div class="pie">Portal de cliente · Ventor</div>');
+ app.innerHTML=h.join('');
+}
+async function pagar(){const v=prompt("¿Cuánto quieres pagar? (saldo "+money(D.saldo)+")",String(D.saldo));if(!v)return;const m=Number(String(v).replace(/[^0-9.]/g,""));if(!(m>0))return;try{const r=await call({accion:"pagar",monto:m,volver:location.protocol==="https:"?location.href.split("&pago=")[0]+"&pago=1":""});if(r.url)location.href=r.url}catch(e){msg="⚠ "+e.message;pinta()}}
+async function archivo(u,f){try{msg="Descargando…";pinta();const r=await call({accion:"factura_archivo",uuid:u,formato:f});const bin=atob(r.base64);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);const bl=new Blob([a],{type:f==="pdf"?"application/pdf":"application/xml"});const l=document.createElement("a");l.href=URL.createObjectURL(bl);l.download="factura-"+u.slice(0,8)+"."+f;document.body.appendChild(l);l.click();l.remove();msg="Listo";}catch(e){msg="⚠ "+e.message}pinta()}
+function repetir(i){
+ const c=D.compras[i];cart={};c.lineas.forEach(l=>{if(l.id!=null)cart[l.id]={...l}});
+ const sh=document.createElement('div');sh.className='sheet';sh.id='sh';
+ sh.innerHTML='<div class="sh"><h2 style="margin-top:0">Repetir pedido</h2><div id="ls"></div><label style="margin-top:10px">Notas (opcional)</label><input id="nt" placeholder="Ej. pasar por la tarde"><div id="er" class="err"></div><button class="btn" id="go">Enviar pedido</button><button class="btn sec" style="margin-top:8px" onclick="document.getElementById(\'sh\').remove()">Cancelar</button></div>';
+ document.body.appendChild(sh);pl();
+ document.getElementById('go').onclick=async()=>{const b=document.getElementById('go');b.disabled=true;
+  try{const r=await call({accion:'pedido',items:Object.values(cart).filter(x=>x.cantidad>0).map(x=>({id:x.id,cantidad:x.cantidad})),notas:document.getElementById('nt').value});sh.remove();msg='Pedido enviado ('+r.codigo+'). Total aprox. '+money(r.total)+'. El negocio te contactará.';pinta();}catch(e){document.getElementById('er').textContent=e.message;b.disabled=false}};
+}
+function pl(){document.getElementById('ls').innerHTML=Object.values(cart).map(l=>'<div class="row"><span>'+esc(l.nombre)+'</span><span class="qty"><button onclick="cq('+l.id+',-1)">−</button><b>'+l.cantidad+'</b><button onclick="cq('+l.id+',1)">+</button></span></div>').join('')}
+function cq(id,d){const l=cart[id];if(!l)return;l.cantidad=Math.max(0,Math.round((l.cantidad+d)*1000)/1000);pl()}
+async function nuevoTk(){const a=document.getElementById('tka').value.trim();if(a.length<3){msg='⚠ Escribe el asunto';return pinta()}try{const r=await call({accion:'ticket',asunto:a,txt:document.getElementById('tkd').value,prioridad:document.getElementById('tkp').value});msg='Ticket '+r.folio+' enviado. Te responderemos pronto.';D=await call({accion:'ver'})}catch(e){msg='⚠ '+e.message}pinta()}
+async function msgTk(i){const el=document.getElementById('tm'+i);const v=(el&&el.value||'').trim();if(!v)return;try{await call({accion:'ticket_msg',folio:D.tickets[i].folio,txt:v});msg='Mensaje enviado';D=await call({accion:'ver'})}catch(e){msg='⚠ '+e.message}pinta()}
+async function mail(u){const em=prompt('¿A qué correo te la enviamos?');if(!em)return;try{await call({accion:'factura_mail',uuid:u,email:em});msg='Factura enviada a '+em;}catch(e){msg='⚠ '+e.message}pinta()}
+(async()=>{if(!E||!T)return fail('Falta el enlace completo. Pídele a tu proveedor tu enlace personal.');try{D=await call({accion:'ver'});if(D.cfg&&D.cfg.color)document.documentElement.style.setProperty('--rd',D.cfg.color);if(Q.get("pago"))msg="Gracias por tu pago. Se reflejará en unos minutos.";document.title=D.empresa+" · Mi cuenta";pinta()}catch(e){fail(e.message)}})();
+</script></body></html>
