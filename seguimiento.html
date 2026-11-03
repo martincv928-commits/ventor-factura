@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sigue tu pedido</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--bg:#f6f6f7;--card:#fff;--tx:#18181b;--mu:#6b6b73;--bd:#dcdce0;--rd:#d7263d;--ok:#0f9d68;--am:#e08a00}
+@media(prefers-color-scheme:dark){:root{--bg:#0e0e10;--card:#18181b;--tx:#f4f4f5;--mu:#a1a1aa;--bd:#2e2e33;--rd:#ff5a5f;--ok:#34d399;--am:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:16px}
+.w{max-width:480px;margin:0 auto}.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:12px}
+h1{font-size:21px;margin:0 0 4px}p{color:var(--mu);font-size:14px;line-height:1.45;margin:0 0 10px}
+.big{font-size:30px;font-weight:800;margin:6px 0}.ok{color:var(--ok)}.am{color:var(--am)}.err{color:var(--rd)}
+#map{height:300px;border-radius:12px;margin-top:10px;background:#ddd}
+.sm{font-size:12px;color:var(--mu);text-align:center;margin-top:10px}
+</style></head><body><div class="w"><div class="c" id="app">Cargando…</div><div class="sm">Seguimiento con Impulsor Ventor · se actualiza solo</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-rutas";
+const Q=new URLSearchParams(location.search);
+const B={accion:"seguimiento",e:Q.get("e")||"",r:Q.get("r")||"",k:Q.get("k")||"",t:Q.get("t")||""};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hr=d=>{try{return new Date(d).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}catch(e){return""}};
+let map=null,mDest=null,mDrv=null,fitted=false;
+function pinta(j){
+  let h="";
+  if(j.estado==="entregado"){h='<h1 class="ok">¡Pedido entregado!</h1><p>'+esc(j.empresa)+' · '+esc(j.folio)+(j.hora?' · '+hr(j.hora):'')+'</p><p>Gracias por tu compra, '+esc(j.cliente)+'.</p>';}
+  else if(j.estado==="noestaba"||j.estado==="reprog"){h='<h1 class="am">Entrega pendiente</h1><p>No pudimos entregar tu pedido '+esc(j.folio)+'. '+esc(j.empresa)+' se pondrá en contacto contigo para reprogramar.</p>';}
+  else if(j.ruta_estado==="en_curso"){
+    h='<h1>Tu pedido va en camino 🚚</h1><p>'+esc(j.empresa)+' · '+esc(j.folio)+(j.repartidor?' · te lo lleva '+esc(j.repartidor):'')+'</p>';
+    if(j.antes>0)h+='<div class="big">'+j.antes+' entrega'+(j.antes===1?'':'s')+' antes de la tuya</div>';
+    else h+='<div class="big ok">¡Eres la siguiente entrega!</div>';
+    if(j.eta)h+='<p>Llegada estimada: <b>'+hr(j.eta)+'</b> aprox.</p>';
+    if(j.porCobrar>0)h+='<p>Total a pagar al recibir: <b>$'+Number(j.porCobrar).toLocaleString("es-MX",{minimumFractionDigits:2})+'</b></p>';
+    h+='<div id="map"></div>';
+  } else {h='<h1>Tu pedido está en preparación</h1><p>'+esc(j.empresa)+' · '+esc(j.folio)+'. Cuando salga a reparto verás aquí su avance en vivo.</p>';}
+  $("#app").innerHTML=h;
+  if($("#map")&&window.L){
+    map=L.map("map",{attributionControl:true});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+    const pts=[];
+    if(j.destino){pts.push([j.destino.lat,j.destino.lng]);L.marker([j.destino.lat,j.destino.lng],{icon:L.divIcon({className:"",iconSize:[34,40],iconAnchor:[17,38],html:'<div style="font-size:32px">🏠</div>'})}).addTo(map);}
+    if(j.pos){pts.push([j.pos.lat,j.pos.lng]);L.marker([j.pos.lat,j.pos.lng],{icon:L.divIcon({className:"",iconSize:[38,38],iconAnchor:[19,19],html:'<div style="font-size:30px">🚚</div>'})}).addTo(map);}
+    if(pts.length>1)map.fitBounds(pts,{padding:[30,30],maxZoom:16});else if(pts.length)map.setView(pts[0],15);else map.setView([19.43,-99.13],11);
+  }
+}
+async function carga(){
+  try{
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(B)});
+    const j=await r.json();
+    if(!r.ok){$("#app").innerHTML='<h1 class="err">No disponible</h1><p>'+esc(j.error||"Enlace inválido")+'</p>';return false;}
+    pinta(j);return j.estado==="pend"&&j.ruta_estado==="en_curso";
+  }catch(e){$("#app").innerHTML='<h1 class="err">Sin conexión</h1><p>Revisa tu internet e intenta de nuevo.</p>';return false;}
+}
+(async function ciclo(){const seguir=await carga();setTimeout(ciclo,seguir?20000:60000);})();
+</script></body></html>

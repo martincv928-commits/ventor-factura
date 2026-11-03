@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tu cotización</title>
+<style>
+:root{--bg:#f6f6f7;--card:#fff;--tx:#18181b;--mu:#6b6b73;--bd:#dcdce0;--rd:#d7263d;--ok:#0f9d68}
+@media(prefers-color-scheme:dark){:root{--bg:#0e0e10;--card:#18181b;--tx:#f4f4f5;--mu:#a1a1aa;--bd:#2e2e33;--rd:#ff5a5f;--ok:#34d399}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:16px}
+.w{max-width:480px;margin:0 auto}.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px}
+h1{font-size:21px;margin:0 0 4px}p{color:var(--mu);font-size:14px;line-height:1.45;margin:0 0 14px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 10px}td{padding:8px 0;border-bottom:1px solid var(--bd)}td:last-child{text-align:right;white-space:nowrap}
+.tot{display:flex;justify-content:space-between;font-size:18px;font-weight:800;margin:8px 0 16px}
+label{display:block;font-size:12.5px;color:var(--mu);margin:0 0 4px}
+input,textarea{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px;margin-bottom:12px;font-family:inherit}
+button{width:100%;padding:13px;border:0;border-radius:9px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.si{background:var(--ok);color:#fff}.no{background:transparent;color:var(--mu);border:1px solid var(--bd)}
+button:disabled{opacity:.55}.err{color:var(--rd);font-size:14px;margin:0 0 12px}.ok{color:var(--ok);font-weight:700;font-size:16px}
+.sm{font-size:12px;color:var(--mu);margin-top:14px}
+</style></head><body><div class="w"><div class="c" id="app">Cargando…</div>
+<p class="sm" style="text-align:center">Cotización enviada con Impulsor Ventor</p></div>
+<script>
+const API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-cotizacion";
+const KEY="sb_publishable_p0-ZWH8XPPyC_KSTOzG9vw_OENVq8o-";
+const Q=new URLSearchParams(location.search);
+const B={e:Q.get("e")||"",c:Q.get("c")||"",t:Q.get("t")||""};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $$=n=>"$"+Number(n||0).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fe=d=>d?new Date(d).toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"}):"";
+async function api(x){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({...B,...x})});const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error||("Error "+r.status));e.data=j;throw e}return j}
+function pinta(q){
+  const filas=q.lineas.map(l=>`<tr><td>${esc(l.nombre)} × ${esc(l.cantidad)}</td><td>${$$(l.precio*l.cantidad)}</td></tr>`).join("");
+  let pie="";
+  if(q.estado==="aprobada"||q.estado==="aceptada")pie=`<p class="ok">✓ Cotización aprobada${q.respuesta&&q.respuesta.nombre?" por "+esc(q.respuesta.nombre):""}. El negocio se pondrá en contacto contigo.</p>`;
+  else if(q.estado==="rechazada")pie=`<p>Esta cotización fue rechazada.</p>`;
+  else if(q.caducada)pie=`<p class="err">Esta cotización caducó el ${fe(q.vence)}. Pide una nueva al negocio.</p>`;
+  else pie=`<label>Tu nombre</label><input id="nm" autocomplete="name">
+    <label>Comentario (opcional)</label><textarea id="nt" rows="2"></textarea>
+    <div id="m"></div><button class="si" id="ap">Aprobar cotización</button><button class="no" id="rc">Rechazar</button>`;
+  $("#app").innerHTML=`<h1>${esc(q.empresa)}</h1><p>Cotización #${esc(q.folio)} para ${esc(q.cliente)}${q.vence?" · vigente hasta el "+fe(q.vence):""}</p>
+  <table>${filas}</table><div class="tot"><span>Total</span><span>${$$(q.total)}</span></div>${pie}`;
+  const resp=a=>async()=>{const nm=$("#nm").value.trim();if(!nm){$("#m").innerHTML='<p class="err">Escribe tu nombre</p>';return}
+    $("#ap").disabled=$("#rc").disabled=true;
+    try{pinta(await api({accion:a,nombre:nm,nota:$("#nt").value}))}catch(x){$("#m").innerHTML=`<p class="err">${esc(x.message)}</p>`;$("#ap").disabled=$("#rc").disabled=false}};
+  if($("#ap")){$("#ap").onclick=resp("aprobar");$("#rc").onclick=resp("rechazar")}
+}
+(async()=>{try{pinta(await api({accion:"ver"}))}catch(x){$("#app").innerHTML=`<h1>Cotización</h1><p class="err">${esc(x.message)}</p>`}})();
+</script></body></html>

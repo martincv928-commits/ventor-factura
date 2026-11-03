@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portal de proveedor</title><style>
+:root{--bg:#f6f6f7;--card:#fff;--tx:#18181b;--mu:#6b6b73;--bd:#dcdce0;--rd:#2563eb;--ok:#0f9d68;--er:#d7263d}
+@media(prefers-color-scheme:dark){:root{--bg:#0e0e10;--card:#18181b;--tx:#f4f4f5;--mu:#a1a1aa;--bd:#2e2e33;--ok:#34d399;--er:#ff5a5f}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:24px}
+header{padding:18px 16px;background:var(--rd);color:#fff}h1{font-size:20px;margin:0}.sub{font-size:13px;opacity:.9;margin-top:3px}
+.w{max-width:760px;margin:0 auto;padding:0 16px}
+input{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px;font-family:inherit;margin-bottom:10px}
+label{display:block;font-size:12.5px;color:var(--mu);margin:0 0 4px}
+.btn{display:inline-block;padding:9px 14px;border:0;border-radius:9px;background:var(--rd);color:#fff;font-size:14px;font-weight:700;cursor:pointer}.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn:disabled{opacity:.5}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:10px 0}.big{font-size:28px;font-weight:800}.mu{color:var(--mu);font-size:13px}
+.row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:14px}
+.tabs{display:flex;gap:6px;margin:12px 0;overflow-x:auto}.tabs div{flex:0 0 auto;padding:9px 14px;border:1px solid var(--bd);border-radius:20px;font-size:13px;cursor:pointer;background:var(--card)}.tabs div.on{background:var(--rd);color:#fff;border-color:var(--rd);font-weight:700}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid var(--bd)}.okc{color:var(--ok);border-color:var(--ok)}.erc{color:var(--er);border-color:var(--er)}
+.err{color:var(--er)}.ok{color:var(--ok);font-weight:700}.pie{text-align:center;font-size:12px;color:var(--mu);padding:14px}
+</style></head><body><div id="app"><div class="w" style="padding-top:30px">Cargando…</div></div>
+<script>
+const KEY="sb_publishable_p0-ZWH8XPPyC_KSTOzG9vw_OENVq8o-";
+const API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-proveedor";
+const money=n=>"$"+Number(n||0).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fd=f=>{try{return new Date(f).toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return ""}};
+const app=document.getElementById("app");const Q=new URLSearchParams(location.search);const E=String(Q.get("e")||"").toLowerCase(),T=String(Q.get("t")||"");
+let D=null,tab="ocs",msg="",ab=null;
+async function call(o){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({e:E,t:T,...o})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("Error "+r.status));return j}
+function pinta(){
+ const h=['<header><div class="w"><h1>'+esc(D.empresa)+'</h1><div class="sub">Portal de proveedor · '+esc(D.proveedor.nombre)+'</div></div></header><div class="w">'];
+ h.push('<div class="tabs">'+[["ocs","Órdenes de compra"],["pagos","Pagos y saldo"],["fact","Mis facturas"]].map(x=>'<div class="'+(tab===x[0]?'on':'')+'" onclick="tab=\''+x[0]+'\';msg=\'\';pinta()">'+x[1]+'</div>').join('')+'</div>');
+ if(msg)h.push('<div class="card '+(msg[0]==="⚠"?"err":"ok")+'">'+esc(msg)+'</div>');
+ if(tab==="ocs"){
+  if(!D.ocs.length)h.push('<div class="card mu">No hay órdenes de compra.</div>');
+  D.ocs.forEach(o=>{h.push('<div class="card"><div class="row"><b>'+esc(o.folio)+' · '+fd(o.fecha)+'</b><b>'+money(o.total)+'</b></div><div>'+(o.recibida?'<span class="tag okc">Recibida</span>':o.confirmada?'<span class="tag okc">Confirmada'+(o.confirmada.fechaEntrega?' · entrega '+fd(o.confirmada.fechaEntrega+'T12:00'):'')+'</span>':'<span class="tag">Por confirmar</span>')+'</div>');
+   if(ab===o.id)h.push('<div style="margin-top:8px">'+o.lineas.map(l=>'<div class="row mu"><span>'+esc(l.cantidad+' × '+l.nombre)+'</span><span>'+money(l.costo)+'</span></div>').join('')+'</div>');
+   h.push('<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sec" onclick="ab='+(ab===o.id?'null':o.id)+';pinta()">'+(ab===o.id?'Ocultar':'Ver detalle')+'</button>'+(!o.recibida&&!o.confirmada&&o.estado==="pendiente"?'<button class="btn" onclick="confirmar('+o.id+')">Confirmar orden</button>':'')+'</div></div>')});
+ }
+ if(tab==="pagos"){
+  h.push('<div class="card"><div class="mu">Saldo que te debemos</div><div class="big">'+money(D.saldo)+'</div></div>');
+  D.ocs.filter(o=>o.saldo>0||o.pagos.length).forEach(o=>h.push('<div class="card"><div class="row"><b>'+esc(o.folio)+'</b><b>'+(o.saldo>0?money(o.saldo)+' pendiente':'Pagada')+'</b></div>'+(o.vence?'<div class="mu">'+(o.vencida?'<span class="err">Venció '+fd(o.vence)+'</span>':'Pago programado: '+fd(o.vence))+'</div>':'')+(o.pagos.length?'<div class="mu">Pagos: '+o.pagos.map(p=>fd(p.fecha)+' '+money(p.monto)).join(' · ')+'</div>':'')+'</div>'));
+ }
+ if(tab==="fact"){
+  h.push('<div class="card"><b>Subir factura (XML)</b><div class="mu" style="margin:4px 0 8px">Sube el XML timbrado. Si corresponde a una orden, escribe su folio.</div><label>Folio de la orden (opcional)</label><input id="oc" placeholder="OC-0001"><input type="file" id="xml" accept=".xml,text/xml" style="padding:8px"><button class="btn" onclick="subir()">Subir factura</button></div>');
+  D.facturas.forEach(f=>h.push('<div class="card"><div class="row"><b>'+fd(f.fecha||f.subida)+(f.oc?' · '+esc(f.oc):'')+'</b><b>'+money(f.total)+'</b></div><div class="mu" style="word-break:break-all">UUID '+esc(f.uuid)+' · '+(f.estado==="importada"?'<span class="ok">registrada</span>':'recibida')+'</div></div>'));
+ }
+ h.push('</div><div class="pie">Portal de proveedor · Ventor</div>');app.innerHTML=h.join('');
+}
+async function confirmar(id){const fe=prompt("Fecha estimada de entrega (AAAA-MM-DD), opcional:","");const nota=prompt("Comentario (opcional):","")||"";try{await call({accion:"confirmar",id,fechaEntrega:fe||"",nota});msg="Orden confirmada. ¡Gracias!";D=await call({accion:"ver"})}catch(e){msg="⚠ "+e.message}pinta()}
+async function subir(){const f=document.getElementById("xml").files[0];if(!f){msg="⚠ Elige el archivo XML";return pinta()}const xml=await f.text();try{const r=await call({accion:"factura",xml,oc:document.getElementById("oc").value});msg="Factura recibida por "+money(r.total)+".";D=await call({accion:"ver"})}catch(e){msg="⚠ "+e.message}pinta()}
+(async()=>{if(!E||!T){app.innerHTML='<div class="w" style="padding-top:30px"><h1>Falta el enlace completo</h1></div>';return}try{D=await call({accion:"ver"});document.title=D.empresa+" · Proveedores";pinta()}catch(e){app.innerHTML='<div class="w" style="padding-top:30px"><h1>Portal de proveedor</h1><p class="err">'+esc(e.message)+'</p></div>'}})();
+</script></body></html>
