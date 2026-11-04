@@ -40,6 +40,7 @@ const MESA=String(Q.get("mesa")||"").slice(0,40);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const $m=n=>"$"+Number(n).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});
 const cap=t=>t?t.charAt(0).toUpperCase()+t.slice(1):"Otros";
+let PAG={pasarelas:[],pideRfc:false}, FA={on:false,rfc:"",razon:"",cp:"",regimen:"601",uso:"G03",email:""};
 let D=null, cart={}, cat="todas", q="", hoja=null, msg="", busy=false, f={nombre:"",telefono:"",direccion:"",notas:"",entrega:"retiro",pago:"wa",zona:"",cupon:""}, cup=null, cupMsg="";
 try{const g=JSON.parse(localStorage.getItem("vt_tienda_"+E)||"{}");if(g.cart)cart=g.cart;if(g.f)f={...f,...g.f};}catch(e){}
 const guardar=()=>{try{localStorage.setItem("vt_tienda_"+E,JSON.stringify({cart,f:{nombre:f.nombre,telefono:f.telefono,direccion:f.direccion,zona:f.zona}}));}catch(e){}};
@@ -52,6 +53,16 @@ async function api(accion,datos){
   if(!r.ok) throw new Error(j.error||("Error "+r.status));
   return j;
 }
+const PGU=API.replace("ventor-tienda","ventor-pagos");
+async function pagos(accion,datos){
+  const r=await fetch(PGU,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({accion,e:E,...datos})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||("Error "+r.status));
+  return j;
+}
+const PGN={stripe:"Tarjeta (Stripe)",paypal:"PayPal",conekta:"Tarjeta / OXXO / SPEI (Conekta)",clip:"Tarjeta (Clip)"};
+const esExt=v=>["stripe","paypal","conekta","clip"].indexOf(v)>=0;
+const REGS=[["601","General de Ley PM"],["603","PM sin fines de lucro"],["605","Sueldos y salarios"],["606","Arrendamiento"],["612","Persona física con act. empresarial"],["616","Sin obligaciones fiscales"],["621","Incorporación fiscal"],["625","Plataformas tecnológicas"],["626","RESICO"]];
 const lineas=()=>Object.keys(cart).map(id=>{const p=D.productos.find(x=>String(x.id)===id);return p?{p,c:cart[id]}:null}).filter(Boolean);
 const sub=()=>lineas().reduce((a,l)=>a+l.p.precio*l.c,0);
 const zonaSel=()=>(D.zonas||[]).find(z=>z.nombre===f.zona)||null;
@@ -68,11 +79,7 @@ function pintar(){
   const app=$("#app");
   if(!E){app.innerHTML='<div class="w" style="padding-top:30px"><h1>Tienda no encontrada</h1><p class="sub">Falta el código de la tienda en el enlace.</p></div>';return;}
   if(!D){app.innerHTML='<div class="w" style="padding-top:30px">'+(msg?'<h1>'+esc(msg)+'</h1>':'Cargando tienda…')+'</div>';return;}
-  if(Q.get("gracias")){
-    const est=Q.get("status")||Q.get("collection_status");
-    app.innerHTML='<div class="w" style="padding-top:30px"><h1 class="ok">¡Gracias por tu pedido!</h1><p class="sub">'+(est==="approved"?"Tu pago fue aprobado. ":est==="pending"||est==="in_process"?"Tu pago está pendiente de confirmarse. ":"")+esc(D.empresa)+' recibió tu pedido y te contactará para confirmarlo.</p><button class="btn" onclick="location.href=location.pathname+\'?e=\'+E">Seguir comprando</button></div>';
-    return;
-  }
+  if(Q.get("gracias")||Q.get("seg")||Q.get("cancelado")){pintarSeg();return;}
   const cats=["todas",...Array.from(new Set(D.productos.map(p=>p.cat)))];
   const t=q.trim().toLowerCase();
   const ps=D.productos.filter(p=>(cat==="todas"||p.cat===cat)&&(!t||p.nombre.toLowerCase().includes(t)));
@@ -83,7 +90,7 @@ function pintar(){
   <div class="w"><input id="busq" placeholder="Buscar producto…" value="${esc(q)}" style="margin-top:12px;margin-bottom:0">
   <div class="chips">${cats.map(c=>`<div class="chip ${c===cat?'on':''}" data-c="${esc(c)}">${c==="todas"?"Todo":esc((D.categorias&&D.categorias[c])||cap(c))}</div>`).join("")}</div>
   <div class="grid">${itemsT.map(p=>{if(p.G)return cardG(p.G);const c=cart[p.id]||0;return `<div class="p"><div class="ph">${fotosHtml(p)}</div><div class="pi"><div class="pn">${esc(p.nombre)}</div><div class="pp">${$m(p.precio)}${p.unidad&&p.unidad!=="pza"?" / "+esc(p.unidad):""}</div>${p.disponible<=0?'<div class="ag">Agotado</div>':c?`<div class="qty"><button data-m="${p.id}">−</button><b>${qn(p,c)}</b><button data-p="${p.id}">+</button></div>`:`<button class="btn" data-p="${p.id}">Agregar</button>`}</div></div>`}).join("")||'<p class="sub">No hay productos con ese filtro.</p>'}</div></div>
-  <div class="pie">${MESA?"Menú":"Tienda"} con tecnología Impulsor Ventor</div>
+  <div class="pie">${MESA?"":`<a href="?e=${esc(E)}&seg=1" style="color:inherit">Seguir mi pedido</a> · `}${MESA?"Menú":"Tienda"} con tecnología Impulsor Ventor</div>
   ${n?`<div class="bar"><button class="btn" id="ver">${MESA?"Ver mi pedido":"Ver carrito"} · ${n} artículo${n>1?"s":""} · ${$m(sub())}</button></div>`:""}
   ${hoja?hojaHtml():""}`;
   const b=$("#busq");b.oninput=e=>{q=e.target.value;pintar();};if(enf){b.focus();b.setSelectionRange(q.length,q.length);}
@@ -94,6 +101,45 @@ function pintar(){
   const v=$("#ver");if(v)v.onclick=()=>{hoja="carrito";msg="";pintar();};
   enlazarHoja();
 }
+let SEG=null,SEGMSG="",SEGBUSY=false;
+async function cargarSeg(){
+  const cod=String(Q.get("p")||"").toUpperCase();let tel="";
+  try{const u=JSON.parse(localStorage.getItem("vt_ult_"+E)||"{}");if(!cod||u.codigo===cod)tel=u.tel||"";}catch(e){}
+  if(!cod||!tel)return;
+  SEGBUSY=true;pintar();
+  try{
+    const orden=Q.get("token");
+    if(orden&&Q.get("PayerID")){try{await pagos("paypal_capturar",{codigo:cod,tel,orden,volver:location.origin+location.pathname+"?e="+encodeURIComponent(E)});}catch(e){}}
+    else if(!Q.get("cancelado")){try{await pagos("verificar",{codigo:cod,tel});}catch(e){}}
+    SEG=await pagos("seguimiento",{codigo:cod,tel});SEGMSG="";
+  }catch(e){SEGMSG=e.message;}
+  SEGBUSY=false;pintar();
+}
+const ESTX={nuevo:"Recibido",preparando:"En preparación",listo:"Listo",enviado:"Enviado",entregado:"Entregado",cancelado:"Cancelado"};
+function pintarSeg(){
+  const app=$("#app");const cod=String(Q.get("p")||"");
+  const volverB=`<button class="btn sec" style="margin-top:10px" onclick="location.href=location.pathname+'?e='+E">Volver a la tienda</button>`;
+  if(SEGBUSY){app.innerHTML='<div class="w" style="padding-top:30px"><p class="sub">Confirmando tu pedido…</p></div>';return;}
+  if(SEG){
+    const g=SEG.guia;
+    app.innerHTML=`<div class="w" style="padding-top:30px"><h1 class="ok">${Q.get("cancelado")?"Pago cancelado":SEG.pagado?"¡Pago recibido!":"¡Gracias por tu pedido!"}</h1>
+    <p class="sub">Pedido <b>#${esc(SEG.codigo)}</b> · ${$m(SEG.total)} · Estado: <b>${esc(ESTX[SEG.estado]||SEG.estado)}</b>${SEG.pagado?" · Pagado":""}</p>
+    ${!SEG.pagado&&Q.get("gracias")?`<p class="sub">Si ya pagaste, la confirmación puede tardar unos minutos. <a href="javascript:location.reload()">Actualizar</a></p>`:""}
+    ${g&&(g.numero||g.paqueteria)?`<p class="sub">Envío: ${esc(g.paqueteria||"")} ${g.numero?"· guía <b>"+esc(g.numero)+"</b>":""} ${g.url?`<br><a href="${esc(g.url)}" target="_blank" rel="noopener">Rastrear mi paquete</a>`:""}</p>`:""}
+    ${(SEG.digital||[]).length?`<h2 style="font-size:16px;margin:14px 0 6px">Tus descargas</h2>${SEG.digital.map(d=>`<a href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none"><button class="btn" style="margin-bottom:8px">Descargar ${esc(d.nombre)}</button></a>`).join("")}`:""}
+    ${window.__faErr?`<p class="err">No pudimos guardar tus datos de factura: ${esc(window.__faErr)}. Pídelos al negocio.</p>`:""}
+    ${volverB}</div>`;
+    return;
+  }
+  const est=Q.get("status")||Q.get("collection_status");
+  if(Q.get("gracias")&&!Q.get("seg")&&!Q.get("p")){
+    app.innerHTML='<div class="w" style="padding-top:30px"><h1 class="ok">¡Gracias por tu pedido!</h1><p class="sub">'+(est==="approved"?"Tu pago fue aprobado. ":est==="pending"||est==="in_process"?"Tu pago está pendiente de confirmarse. ":"")+esc(D.empresa)+' recibió tu pedido y te contactará para confirmarlo.</p><button class="btn" onclick="location.href=location.pathname+\'?e=\'+E">Seguir comprando</button></div>';return;
+  }
+  app.innerHTML=`<div class="w" style="padding-top:30px"><h1>Seguimiento de pedido</h1>${SEGMSG?'<p class="err">'+esc(SEGMSG)+'</p>':""}
+  <label>Número de pedido</label><input id="s-cod" value="${esc(cod)}" style="text-transform:uppercase"><label>Tu teléfono</label><input id="s-tel" inputmode="tel">
+  <button class="btn" id="s-ok" style="margin-top:12px">Consultar</button>${volverB}</div>`;
+  $("#s-ok").onclick=async()=>{const c=$("#s-cod").value.trim().toUpperCase(),t=$("#s-tel").value;try{SEG=await pagos("seguimiento",{codigo:c,tel:t});SEGMSG="";}catch(e){SEGMSG=e.message;}pintar();};
+}
 function hojaHtml(){
   const ls=lineas();
   const tot=sub()-desc()+envio(); const mr=minReq(); const faltaMin=mr>0&&sub()<mr; const cerrada=D.abierta===false&&!D.aceptaFuera; const faltaZona=f.entrega==="envio"&&D.zonas&&D.zonas.length&&!zonaSel();
@@ -103,10 +149,12 @@ function hojaHtml(){
   <label>Indicaciones (sin cebolla, término, etc.)</label><input id="f-notas" value="${esc(f.notas)}">
   ${msg?'<p class="err">'+esc(msg)+'</p>':""}
   <button class="btn" id="enviar" ${busy?"disabled":""}>${busy?"Enviando…":"Enviar a cocina"}</button>
-  <div style="height:8px"></div><button class="btn sec" id="cerrar">Seguir viendo el menú</button><p class="sub" style="text-align:center;margin-top:10px">Pagas al final con tu mesero.</p></div></div>`;}
+  <div style="height:8px"></div><button class="btn sec" id="cerrar">Seguir viendo el menú</button><p class="sub" style="text-align:center;margin-top:10px">${/^kiosco/i.test(MESA)?"Pasa a caja con tu número de pedido para pagar.":"Pagas al final con tu mesero."}</p></div></div>`;}
   if(!ls.length){return `<div class="sheet" id="sh"><div class="sh"><p>Tu carrito está vacío.</p><button class="btn sec" id="cerrar">Cerrar</button></div></div>`;}
   const opcEntrega=(D.retiro&&D.envio)?`<label>¿Cómo lo quieres?</label><div class="opt"><div data-e="retiro" class="${f.entrega==="retiro"?'on':''}">Paso a recoger</div><div data-e="envio" class="${f.entrega==="envio"?'on':''}">Envío a domicilio${D.costoEnvio?' (+'+$m(D.costoEnvio)+')':''}</div></div>`:"";
-  const opcPago=D.mp?`<label>¿Cómo pagas?</label><div class="opt"><div data-pg="wa" class="${f.pago==="wa"?'on':''}">Pago al recibir</div><div data-pg="mp" class="${f.pago==="mp"?'on':''}">Pagar ahora (Mercado Pago)</div></div>`:"";
+  const hayPg=D.mp||PAG.pasarelas.length;
+  const opcPago=hayPg?`<label>¿Cómo pagas?</label><div class="opt" style="flex-wrap:wrap"><div data-pg="wa" class="${f.pago==="wa"?'on':''}">Pago al recibir</div>${D.mp?`<div data-pg="mp" class="${f.pago==="mp"?'on':''}">Mercado Pago</div>`:""}${PAG.pasarelas.map(x=>`<div data-pg="${x.id}" class="${f.pago===x.id?'on':''}">${esc(PGN[x.id]||x.nombre)}</div>`).join("")}</div>`:"";
+  const opcFact=PAG.pideRfc&&!MESA?`<label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="fa-on" ${FA.on?"checked":""} style="width:auto;margin:0"> Necesito factura (CFDI)</label>${FA.on?`<label>RFC</label><input id="fa-rfc" value="${esc(FA.rfc)}" maxlength="13" style="text-transform:uppercase"><label>Razón social (como en tu constancia)</label><input id="fa-razon" value="${esc(FA.razon)}"><label>Código postal fiscal</label><input id="fa-cp" value="${esc(FA.cp)}" inputmode="numeric" maxlength="5"><label>Régimen fiscal</label><select id="fa-regimen">${REGS.map(r=>`<option value="${r[0]}"${r[0]===FA.regimen?" selected":""}>${r[0]} · ${r[1]}</option>`).join("")}</select><label>Correo para enviarla</label><input id="fa-email" value="${esc(FA.email)}" inputmode="email">`:""}`:"";
   return `<div class="sheet" id="sh"><div class="sh"><h1 style="font-size:19px;margin-bottom:8px">Tu pedido</h1>${list}
   ${desc()>0?`<div class="row"><span>Cupón ${esc(cup.codigo)}</span><b>−${$m(desc())}</b></div>`:""}
   ${f.entrega==="envio"&&envio()?`<div class="row"><span>Envío${zonaSel()?" ("+esc(zonaSel().nombre)+")":""}</span><b>${$m(envio())}</b></div>`:""}
@@ -118,11 +166,13 @@ function hojaHtml(){
   ${f.entrega==="envio"?`<label>Dirección de entrega</label><textarea id="f-direccion" rows="2">${esc(f.direccion)}</textarea>`:""}
   <label>Notas (opcional)</label><input id="f-notas" value="${esc(f.notas)}">
   ${opcPago}
+  ${f.pago==="conekta"?`<label>Tu correo (para el recibo)</label><input id="f-email" value="${esc(f.email||"")}" inputmode="email">`:""}
+  ${opcFact}
   ${D.hayCupones?`<label>¿Tienes cupón?</label><div style="display:flex;gap:8px"><input id="f-cupon" value="${esc(f.cupon)}" placeholder="CÓDIGO" style="flex:1;text-transform:uppercase"><button class="btn sec" id="apl" style="width:auto;padding:0 16px">${cup?"Quitar":"Aplicar"}</button></div>${cupMsg?'<p class="'+(cup?'ok':'err')+'" style="margin:4px 0 0;font-size:13px">'+esc(cupMsg)+'</p>':''}`:""}
   ${faltaMin?'<p class="err">El pedido mínimo es de '+$m(mr)+'. Te faltan '+$m(mr-sub())+'.</p>':""}
   ${cerrada?'<p class="err">La tienda está cerrada ahora. Horario: '+esc(D.horarioTxt||"")+'</p>':""}
   ${msg?'<p class="err">'+esc(msg)+'</p>':""}
-  <button class="btn" id="enviar" ${busy||faltaMin||cerrada||faltaZona?"disabled":""}>${busy?"Enviando…":(f.pago==="mp"&&D.mp?"Pagar "+$m(tot):"Enviar pedido")}</button>
+  <button class="btn" id="enviar" ${busy||faltaMin||cerrada||faltaZona?"disabled":""}>${busy?"Enviando…":(f.pago==="mp"&&D.mp||esExt(f.pago)?"Pagar "+$m(tot):"Enviar pedido")}</button>
   <div style="height:8px"></div><button class="btn sec" id="cerrar">Seguir comprando</button></div></div>`;
 }
 function enlazarHoja(){
@@ -135,17 +185,27 @@ function enlazarHoja(){
   const zs=$("#f-zona");if(zs)zs.onchange=e=>{f.zona=e.target.value;guardar();pintar();};
   const cu=$("#f-cupon");if(cu)cu.oninput=e=>{f.cupon=e.target.value.toUpperCase();};
   const ap=$("#apl");if(ap)ap.onclick=async()=>{if(cup){cup=null;cupMsg="";f.cupon="";pintar();return;}try{const r=await api("cupon",{codigo:f.cupon,subtotal:sub()});cup=r;cupMsg="Cupón aplicado: −"+$m(r.descuento);}catch(e){cup=null;cupMsg=e.message;}pintar();};
+  const em=$("#f-email");if(em)em.oninput=e=>{f.email=e.target.value;};
+  const fo=$("#fa-on");if(fo)fo.onchange=e=>{FA.on=e.target.checked;pintar();};
+  ["rfc","razon","cp","email"].forEach(k=>{const el=$("#fa-"+k);if(el)el.oninput=e=>{FA[k]=k==="rfc"?e.target.value.toUpperCase():e.target.value;};});
+  const fr=$("#fa-regimen");if(fr)fr.onchange=e=>{FA.regimen=e.target.value;};
   const en=$("#enviar");if(en)en.onclick=enviar;
 }
 async function enviar(){
+  if(f.pago==="conekta"&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(f.email||FA.email||"").trim())){msg="Escribe un correo válido para pagar con tarjeta, OXXO o SPEI.";pintar();return;}
   msg="";busy=true;pintar();
   if(MESA){try{const r=await api("pedido",{cliente:{nombre:f.nombre},notas:f.notas,items:lineas().map(l=>({id:l.p.id,cantidad:l.c}))});cart={};f.notas="";guardar();busy=false;hoja=null;$("#app").innerHTML=`<div class="w" style="padding-top:30px"><h1 class="ok">¡Pedido enviado a cocina!</h1><p class="sub">${esc(MESA)} · pedido #${esc(r.codigo)} por ${$m(r.total)}. En un momento te lo llevamos.</p><button class="btn" onclick="location.reload()">Pedir algo más</button></div>`;}catch(e){busy=false;msg=e.message;pintar();}return;}
   try{
     const volver=(location.protocol==="https:"?location.origin+location.pathname+"?e="+encodeURIComponent(E):"");
-    const r=await api("pedido",{cliente:{nombre:f.nombre,telefono:f.telefono,direccion:f.direccion},entrega:f.entrega,zona:f.zona,cupon:cup?cup.codigo:"",notas:f.notas,pago:D.mp?f.pago:"wa",volver:volver+"&gracias=1",items:lineas().map(l=>({id:l.p.id,cantidad:l.c}))});
-    const resumen=lineas();const totalTxt=$m(r.total);
+    const r=await api("pedido",{cliente:{nombre:f.nombre,telefono:f.telefono,direccion:f.direccion},entrega:f.entrega,zona:f.zona,cupon:cup?cup.codigo:"",notas:f.notas,pago:(D.mp&&f.pago==="mp")?"mp":"wa",volver:volver+"&gracias=1",items:lineas().map(l=>({id:l.p.id,cantidad:l.c}))});
+    const resumen=lineas();const totalTxt=$m(r.total);try{localStorage.setItem("vt_ult_"+E,JSON.stringify({tel:f.telefono,codigo:r.codigo}))}catch(e){}
     cart={};guardar();busy=false;hoja=null;
     if(r.initPoint){location.href=r.initPoint;return;}
+    if(FA.on&&PAG.pideRfc){try{await pagos("factura",{codigo:r.codigo,tel:f.telefono,factura:{rfc:FA.rfc,razon:FA.razon,cp:FA.cp,regimen:FA.regimen,uso:FA.uso,email:FA.email||f.email}});}catch(er){window.__faErr=er.message;}}
+    if(esExt(f.pago)){
+      try{const q=await pagos("iniciar",{codigo:r.codigo,tel:f.telefono,pasarela:f.pago,volver,email:f.email||FA.email||""});location.href=q.url;return;}
+      catch(er){$("#app").innerHTML=`<div class="w" style="padding-top:30px"><h1>Pedido #${esc(r.codigo)} creado</h1><p class="err">No se pudo abrir el pago: ${esc(er.message)}</p><p class="sub">Tu pedido quedó registrado. ${esc(D.empresa)} te contactará, o puedes intentar pagar de nuevo.</p><button class="btn" onclick="location.href=location.pathname+'?e='+E+'&seg=1&p=${esc(r.codigo)}'">Ver mi pedido</button></div>`;return;}
+    }
     const wa=String(r.whatsapp||D.whatsapp||"").replace(/\D/g,"");
     const texto=`Hola, hice el pedido #${r.codigo} en ${D.empresa}:\n`+resumen.map(l=>`• ${qn(l.p,l.c)} × ${l.p.nombre}`).join("\n")+(cup?`\nCupón: ${cup.codigo}`:"")+`\nTotal: ${totalTxt}\nEntrega: ${f.entrega==="envio"?"a domicilio — "+(f.zona?f.zona+", ":"")+f.direccion:"paso a recoger"}\nNombre: ${f.nombre}`;
     const url=wa?`https://wa.me/${wa.length===10?"52"+wa:wa}?text=${encodeURIComponent(texto)}`:"";
@@ -159,9 +219,11 @@ async function enviar(){
     // quitar del carrito lo que ya no existe o no alcanza
     Object.keys(cart).forEach(id=>{const p=D.productos.find(x=>String(x.id)===id);if(!p||p.disponible<=0)delete cart[id];else if(cart[id]>p.disponible)cart[id]=p.disponible;});
     if(!D.retiro&&D.envio)f.entrega="envio";
+    if(!MESA){try{const m=await pagos("metodos",{});PAG={pasarelas:m.pasarelas||[],pideRfc:!!m.pideRfc};}catch(er){}}
     document.title=D.empresa+" · Tienda en línea";
   }catch(e){msg=e.message;D=null;}
   pintar();
+  if(D&&(Q.get("gracias")||Q.get("cancelado"))&&Q.get("p"))cargarSeg();
   if(D)cargarExtras();
 })();
 // ---- Chat de atención (IA) ----
@@ -213,4 +275,4 @@ async function enviar(){
       add("vcb","¡Hola! Soy el asistente virtual"+(nombre?" de "+nombre:"")+". Puedo ayudarte a encontrar productos, precios y dudas del pedido.");}
   }catch(e){}})();
 })();
-</script></body></html>
+</script><script src="vivo.js"></script></body></html>
