@@ -4084,7 +4084,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
     if (!invAv) return h(React.Fragment, null, h("div", { style: { maxWidth: 900, margin: "0 auto", padding: "10px 24px 0", width: "100%" } }, h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, fontSize: 12.5, color: COLORS.textMuted, border: "1px dashed " + COLORS.border, borderRadius: 10, padding: "8px 12px" } }, h("span", null, "Inventario básico. ¿Necesitas almacenes con ubicaciones, recepciones, entregas, traslados y ajustes controlados?"), h("button", { onClick: () => setModalFunc(true), style: { flex: "0 0 auto", padding: "6px 12px", borderRadius: 8, border: "1px solid " + COLORS.amber, background: "transparent", color: COLORS.amberTx, fontWeight: 700, fontSize: 12.5, cursor: "pointer" } }, "Activar avanzado"))), h("div", { style: { maxWidth: 900, margin: "8px auto 0", padding: "0 24px", width: "100%", display: "flex", gap: 8, flexWrap: "wrap" } }, h("button", { onClick: () => setConteoM(true), style: { padding: "6px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, fontWeight: 600, fontSize: 12.5, cursor: "pointer" } }, "📋 Contar inventario"), vtPuede(ctx, "ajustar_inventario") && h("button", { onClick: () => setAjusteM(true), style: { padding: "6px 12px", borderRadius: 8, border: "1px solid " + COLORS.amber, background: "transparent", color: COLORS.amberTx, fontWeight: 700, fontSize: 12.5, cursor: "pointer" } }, "✅ Revisar y ajustar" + ((conteosX || []).filter(x => x.estado === "pendiente").length ? " (" + (conteosX || []).filter(x => x.estado === "pendiente").length + ")" : "")), h("button", { onClick: () => setKardexM(true), style: { padding: "6px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, fontWeight: 600, fontSize: 12.5, cursor: "pointer" } }, "\uD83D\uDCD2 Kardex valorizado")), kardexM && h(Modal, { abierto: true, onCerrar: () => setKardexM(false), titulo: "Kardex valorizado", ancho: 660 }, h("div", { style: { padding: 14, maxHeight: "80vh", overflowY: "auto" } }, h(InvKardexSec, { X: invX }))), prod);
     const pend = ops.filter(o => o.estado === "listo" || o.estado === "borrador").length;
     const reab = productos.filter(vtStockBajo).length;
-    const items = [{ id: "resumen", ico: "📊", label: "Resumen" }, { id: "productos", ico: "📦", label: "Productos" }, { id: "operaciones", ico: "🔁", label: "Operaciones", n: pend }, { id: "almacenes", ico: "🏬", label: "Almacenes" }, { id: "movimientos", ico: "📜", label: "Movimientos" }, { id: "reabasto", ico: "🛒", label: "Reabasto", n: reab }, { id: "valoracion", ico: "💲", label: "Valoración" }, { id: "kardex", ico: "📒", label: "Kardex valorizado" }, { id: "costeo", ico: "🧮", label: "Costeo" }, { id: "lotes", ico: "🧪", label: "Lotes FEFO" }, { id: "picking", ico: "🧭", label: "Picking y acomodo" }, { id: "pronostico", ico: "🔮", label: "Pronóstico" }, { id: "conteo", ico: "📋", label: "Conteo y ajuste", n: vtPuede(ctx, "ajustar_inventario") ? (conteosX || []).filter(x => x.estado === "pendiente").length : 0 }];
+    const items = [{ id: "resumen", ico: "📊", label: "Resumen" }, { id: "productos", ico: "📦", label: "Productos" }, { id: "operaciones", ico: "🔁", label: "Operaciones", n: pend }, { id: "almacenes", ico: "🏬", label: "Almacenes" }, { id: "movimientos", ico: "📜", label: "Movimientos" }, { id: "reabasto", ico: "🛒", label: "Reabasto", n: reab }, { id: "valoracion", ico: "💲", label: "Valoración" }, { id: "kardex", ico: "📒", label: "Kardex valorizado" }, { id: "costeo", ico: "🧮", label: "Costeo" }, { id: "lotes", ico: "🧪", label: "Lotes FEFO" }, { id: "picking", ico: "🧭", label: "Picking y acomodo" }, { id: "pronostico", ico: "🔮", label: "Pronóstico" }, { id: "conteo", ico: "📋", label: "Conteo y ajuste", n: vtPuede(ctx, "ajustar_inventario") ? (conteosX || []).filter(x => x.estado === "pendiente").length : 0 }].filter(it => !["costeo", "lotes", "picking", "pronostico"].includes(it.id) || vtMod(it.id));
     const sec = items.some(i => i.id === invSec) ? invSec : "resumen";
     const Comp = { resumen: InvResumenSec, operaciones: InvOperacionesSec, almacenes: InvAlmacenesSec, movimientos: InvMovimientosSec, reabasto: InvReabastoSec, valoracion: InvValoracionSec, kardex: InvKardexSec, costeo: VtCosteoSec, lotes: VtLotesSec, picking: VtPickingSec, pronostico: VtPronosticoSec, conteo: ({ X }) => React.createElement("div", { style: { padding: 10 } }, React.createElement("div", { style: { fontSize: 13, color: COLORS.textMuted, marginBottom: 10 } }, "1) Contar: se captura lo que hay, sin ver el sistema. 2) Ajustar: un encargado con permiso revisa, edita y autoriza."), React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } }, vtBtn("📋 Contar inventario", X.abrirConteo, "p"), X.puedeAjuste && vtBtn("✅ Revisar y ajustar" + (X.nPendConteo ? " (" + X.nPendConteo + ")" : ""), X.abrirAjuste))) }[sec];
     return h("div", null,
@@ -5759,7 +5759,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
       margin: 0,
       fontFamily: COLORS.fontDisplay
     }
-  }, "\xD3rdenes de compra"), React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } }, vtCapBtn("compra", setCapDoc), vtBtn("🔗 Conciliación", () => setConcM(0)), vtBtn("🏢 Entre empresas", () => setIcM(true)), /*#__PURE__*/React.createElement(BotonNuevo, {
+  }, "\xD3rdenes de compra"), React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } }, vtCapBtn("compra", setCapDoc), vtBtn("🔗 Conciliación", () => setConcM(0)), vtMod("intercompania") && vtBtn("🏢 Entre empresas", () => setIcM(true)), /*#__PURE__*/React.createElement(BotonNuevo, {
     onClick: () => { setNuevaCompra(p => (p.editId != null || p.borrId) ? { proveedorId: "", lineas: [], formaPago: "contado" } : p); setModalCompra(true); }
   }, "Nueva orden"))), /*#__PURE__*/React.createElement("p", {
     style: {
@@ -11848,7 +11848,7 @@ function VtCrmHub({ ctx, etapas, crearOp, fuentes, auto }) {
     tic(); const t = setInterval(tic, 45000); return () => { vivo = false; clearInterval(t); };
   }, []);
   const bt = (txt, n, k) => h("button", { onClick: () => setM(k), style: { padding: "8px 12px", borderRadius: 10, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, fontWeight: 700, fontSize: 13, cursor: "pointer", position: "relative" } }, txt, n > 0 && h("span", { style: { marginLeft: 6, background: COLORS.red, color: "#fff", borderRadius: 10, fontSize: 11, padding: "1px 7px" } }, n));
-  return h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", margin: "10px 0" } }, bt("📥 Leads", nl, "leads"), bt("💬 Chat en vivo", nc, "chat"), bt("✍️ Firmas", 0, "firmas"), auto && bt("⚙️ Automatizaciones", 0, "auto"),
+  return h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", margin: "10px 0" } }, vtMod("leads") && bt("📥 Leads", nl, "leads"), vtMod("leads") && bt("💬 Chat en vivo", nc, "chat"), vtMod("firma") && bt("✍️ Firmas", 0, "firmas"), auto && vtMod("automatizaciones") && bt("⚙️ Automatizaciones", 0, "auto"),
     m === "leads" && h(VtLeadsModal, { ctx, etapas, onCrear: crearOp, onCerrar: () => setM(""), onCuenta: setNl }),
     m === "chat" && h(VtChatVivoModal, { ctx, etapas, onLead: crearOp, onCuenta: setNc, onCerrar: () => setM("") }),
     m === "firmas" && h(VtFirmasModal, { ctx, fuentes, onCerrar: () => setM("") }),
@@ -13369,7 +13369,7 @@ function ProyectosScreen({ ctx, lista, setLista, clientes, usuarios, onFacturar,
   const upd = (id, fn) => setLista(prev => prev.map(x => x.id === id ? fn(x) : x));
   return h("div", { style: { padding: 16, maxWidth: 900, margin: "0 auto" } },
     vtTit("Proyectos", "Tareas, responsables, horas trabajadas y facturación por avance u horas"),
-    h("div", { style: { margin: "10px 0", display: "flex", gap: 8, flexWrap: "wrap" } }, vtBtn("+ Nuevo proyecto", () => setNuevo(true), "p"), vtBtn("⏱ Hojas de horas", () => setHojas(true)), auto && vtBtn("⚙️ Automatizaciones", () => setAutoM(true))),
+    h("div", { style: { margin: "10px 0", display: "flex", gap: 8, flexWrap: "wrap" } }, vtBtn("+ Nuevo proyecto", () => setNuevo(true), "p"), vtMod("proyectospro") && vtBtn("⏱ Hojas de horas", () => setHojas(true)), auto && vtMod("automatizaciones") && vtBtn("⚙️ Automatizaciones", () => setAutoM(true))),
     hojas && h(VtHojasHoras, { ctx, lista, setLista, usuarios, onCerrar: () => setHojas(false) }),
     autoM && auto && h(VtAutoModal, { ctx, ...auto, onCerrar: () => setAutoM(false) }),
     lista.length === 0 && h("div", { style: { ...vtCaja, textAlign: "center", color: COLORS.textMuted, fontSize: 13.5 } }, "Sin proyectos todavía."),
@@ -13395,7 +13395,7 @@ function ProyDetalle({ ctx, p, usuarios, empleados, onGasto, ventas, upd, horas,
   return h(Modal, { abierto: true, onCerrar, titulo: p.nombre, ancho: 760 }, h("div", { style: { padding: 14, maxHeight: "82vh", overflowY: "auto" } },
     vtTiles([["Horas", horas + " h"], ["Por facturar", porFact + " h" + (tarifa ? " · " + money(porFact * tarifa) : ""), porFact ? COLORS.amber : COLORS.text], ["Presupuesto", p.presupuesto ? money(p.presupuesto) : "—"], ["Entrega", p.fin || "—"]]),
     h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0" } }, p.clienteId != null && vtBtn("Facturar", () => setFact(true), "p"), vtBtnAdj((p.adjuntos || []).length, () => setAdj(true)), vtBtn(p.estado === "cerrado" ? "Reabrir" : "Cerrar proyecto", () => upd(x => ({ ...x, estado: x.estado === "cerrado" ? "activo" : "cerrado" })))),
-    h(VtProyExtra, { p, upd, empleados, onGasto, onFacturar, ventas }),
+    vtMod("proyectospro") && h(VtProyExtra, { p, upd, empleados, onGasto, onFacturar, ventas }),
     h("div", { style: { display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" } }, h("input", { value: nt.titulo, onChange: e => setNt({ ...nt, titulo: e.target.value }), placeholder: "Nueva tarea", style: { ...fsInput, flex: 2, minWidth: 140, marginBottom: 0 } }), h("select", { value: nt.resp, onChange: e => setNt({ ...nt, resp: e.target.value }), style: { ...fsInput, width: "auto", marginBottom: 0 } }, [...new Set([ctx.usuario, ...usuarios])].filter(Boolean).map(u => h("option", { key: u, value: u }, u))), h("input", { type: "date", value: nt.vence, onChange: e => setNt({ ...nt, vence: e.target.value }), style: { ...fsInput, width: "auto", marginBottom: 0 } }), vtBtn("+", () => { if (nt.titulo.trim()) { upd(x => ({ ...x, tareas: [...(x.tareas || []), { id: "t" + Date.now().toString(36), titulo: nt.titulo.trim(), resp: nt.resp, vence: nt.vence, estado: "pend", horas: [] }] })); setNt({ ...nt, titulo: "" }); } }, "p")),
     h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10 } }, VT_TAREA_EST.map(([k, t]) => h("div", { key: k, style: { background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 12, padding: 10 } }, h("div", { style: { fontWeight: 700, fontSize: 13, marginBottom: 8 } }, t + " (" + (p.tareas || []).filter(x => x.estado === k).length + ")"),
       (p.tareas || []).filter(x => x.estado === k).map(x => { const hh = (x.horas || []).reduce((s, y) => s + (Number(y.h) || 0), 0); return h("div", { key: x.id, style: { background: COLORS.card, border: "1px solid " + COLORS.border, borderRadius: 9, padding: 9, marginBottom: 6 } }, h("div", { style: { fontSize: 13, fontWeight: 600 } }, x.titulo), h("div", { style: { fontSize: 11.5, color: x.vence && x.vence < hoy && k !== "hecha" ? COLORS.red : COLORS.textMuted } }, (x.resp || "") + (x.vence ? " · " + x.vence : "") + (hh ? " · " + hh + " h" : "")),
@@ -13746,7 +13746,22 @@ const VT_MODULOS = [
   { id: "asistente", g: "Herramientas", ico: "✨", n: "Asistente con IA", d: "Chat gratis, con IA y avanzado; burbuja flotante en toda la app, voz y acciones («hazme una venta para…»)", p: ["asistente"] },
   { id: "adjuntos", g: "Herramientas", ico: "📎", n: "Archivos adjuntos", d: "PDF, fotos y contratos en cada documento", p: [] },
   { id: "api", g: "Herramientas", ico: "🔌", n: "API y avisos (webhooks)", d: "Llaves para conectar otros sistemas y avisos automáticos", p: ["api"] },
+  { id: "intercompania", g: "Compras e inventario", ico: "🏢", n: "Compras entre empresas", d: "Manda una orden de compra a otra empresa Ventor con un código y ella la recibe como pedido", p: [], req: "compras", par: "compras" },
+  { id: "costeo", g: "Compras e inventario", ico: "🧮", n: "Costeo de inventario", d: "Costo promedio, PEPS y costo estándar con valoración por método", p: [], req: "invavanzado", par: "invavanzado" },
+  { id: "lotes", g: "Compras e inventario", ico: "🧪", n: "Lotes y caducidades (FEFO)", d: "Lotes, series y fechas de caducidad; sale primero lo que caduca primero", p: [], req: "invavanzado", par: "invavanzado" },
+  { id: "picking", g: "Compras e inventario", ico: "🧭", n: "Picking y acomodo", d: "Rutas de surtido, ubicaciones sugeridas y olas de picking", p: [], req: "invavanzado", par: "invavanzado" },
+  { id: "pronostico", g: "Compras e inventario", ico: "🔮", n: "Pronóstico de demanda", d: "Qué comprar y cuándo según tus ventas históricas", p: [], req: "invavanzado", par: "invavanzado" },
+  { id: "mfgavanzado", g: "Compras e inventario", ico: "🌳", n: "Manufactura avanzada", d: "Estructura de materiales, piso de producción, centros de trabajo, mantenimiento, subcontratación y versiones", p: [], req: "manufactura", par: "manufactura" },
+  { id: "banco", g: "Finanzas", ico: "🏦", n: "Conciliación bancaria", d: "Importa tu estado de cuenta y concílialo con cobros, pagos y gastos", p: [], req: "facturacion", par: "facturacion" },
+  { id: "sat", g: "Finanzas", ico: "🔗", n: "FiscalBox · IVA y SAT", d: "IVA, RESICO y descarga de CFDI desde el SAT", p: [], req: "facturacion", par: "facturacion" },
+  { id: "analitica", g: "Finanzas", ico: "🎯", n: "Contabilidad analítica", d: "Resultados por área, proyecto o sucursal", p: [], req: "facturacion", par: "facturacion" },
+  { id: "firma", g: "Ventas", ico: "✍️", n: "Firma electrónica", d: "Cotizaciones y contratos que el cliente firma desde su celular", p: [], req: "crm", par: "crm" },
+  { id: "leads", g: "Ventas", ico: "📥", n: "Leads y chat en vivo", d: "Formulario web y chat que se convierten en oportunidades del CRM", p: [], req: "crm", par: "crm" },
+  { id: "automatizaciones", g: "Operación", ico: "⚙️", n: "Automatizaciones", d: "Reglas «si pasa esto, haz aquello» para CRM y proyectos", p: [], req: "crm", par: "crm" },
+  { id: "pasarelas", g: "Ventas", ico: "💳", n: "Cobros en línea", d: "Stripe, PayPal, Conekta y Clip para cobrar en tu tienda", p: [], req: "tienda", par: "tienda" },
+  { id: "proyectospro", g: "Operación", ico: "📅", n: "Proyectos avanzados", d: "Gantt, hitos, rentabilidad y hojas de horas", p: [], req: "proyectos", par: "proyectos" },
 ];
+function vtLegacy(ok) { const nu = VT_MODULOS.filter(m => m.par); if (!nu.some(m => ok.has(m.id))) nu.forEach(m => { if (ok.has(m.par)) ok.add(m.id); }); }
 const VT_PAQUETES = [
   ["sencillo", "🧾 Punto de venta sencillo", ["pos", "reportes", "gastos"]],
   ["cotizar", "📄 Cotizar y vender", ["cotizaciones", "mayoreo", "credito", "reportes", "adjuntos"]],
@@ -13756,8 +13771,9 @@ const VT_PAQUETES = [
   ["restaurante", "🍽 Restaurante", ["pos", "tienda", "compras", "gastos", "reportes", "rrhh", "tarjetas", "campanas", "restaurante", "marketing"]],
   ["todo", "⭐ Todo", VT_MODULOS.map(m => m.id)],
 ];
+VT_PAQUETES.forEach(p => { const a = { comercio: ["pasarelas"], distribuidora: ["pasarelas", "intercompania", "costeo", "lotes", "picking", "pronostico", "firma", "leads", "automatizaciones", "banco", "sat", "analitica"], servicios: ["firma", "leads", "automatizaciones", "proyectospro", "banco", "sat", "analitica"], restaurante: ["pasarelas"] }[p[0]]; if (a) p[2] = p[2].concat(a); });
 function vtModsActivos(permitidos, off) {
-  const ok = Array.isArray(permitidos) ? new Set(permitidos) : null; if (ok) { [["invavanzado", "compras"], ["apartados", "pos"], ["lealtad", "pos"], ["promos", "pos"]].forEach(([n, pa]) => { if (ok.has(pa)) ok.add(n); }); ok.add("inicio_pro"); } const fuera = new Set(off || []);
+  const ok = Array.isArray(permitidos) ? new Set(permitidos) : null; if (ok) { [["invavanzado", "compras"], ["apartados", "pos"], ["lealtad", "pos"], ["promos", "pos"]].forEach(([n, pa]) => { if (ok.has(pa)) ok.add(n); }); ok.add("inicio_pro"); vtLegacy(ok); } const fuera = new Set(off || []);
   return new Set(VT_MODULOS.filter(m => (!ok || ok.has(m.id)) && !fuera.has(m.id)).map(m => m.id));
 }
 function vtPantOff(activos) {
@@ -13767,7 +13783,7 @@ function vtPantOff(activos) {
 function vtMod(id) { return !window.VT_MODS || window.VT_MODS.has(id); }
 function vtModSwitch(on, dis, fn) { return React.createElement("button", { onClick: dis ? undefined : fn, disabled: dis, "aria-pressed": on, style: { width: 46, height: 26, borderRadius: 13, border: "none", background: on ? COLORS.green : COLORS.border, position: "relative", cursor: dis ? "not-allowed" : "pointer", flexShrink: 0, opacity: dis ? 0.5 : 1, transition: "background .15s" } }, React.createElement("span", { style: { position: "absolute", top: 3, left: on ? 23 : 3, width: 20, height: 20, borderRadius: 10, background: "#fff", transition: "left .15s", boxShadow: "0 1px 3px rgba(0,0,0,.3)" } })); }
 function ModulosScreen({ ctx, permitidos, off, setOff, onSoporte }) {
-  const h = React.createElement; const ok = Array.isArray(permitidos) ? new Set(permitidos) : null; if (ok) { [["invavanzado", "compras"], ["apartados", "pos"], ["lealtad", "pos"], ["promos", "pos"]].forEach(([n, pa]) => { if (ok.has(pa)) ok.add(n); }); ok.add("inicio_pro"); } const fuera = new Set(off || []);
+  const h = React.createElement; const ok = Array.isArray(permitidos) ? new Set(permitidos) : null; if (ok) { [["invavanzado", "compras"], ["apartados", "pos"], ["lealtad", "pos"], ["promos", "pos"]].forEach(([n, pa]) => { if (ok.has(pa)) ok.add(n); }); ok.add("inicio_pro"); vtLegacy(ok); } const fuera = new Set(off || []);
   const activo = id => (!ok || ok.has(id)) && !fuera.has(id); const permitido = id => !ok || ok.has(id);
   const nom = id => (VT_MODULOS.find(m => m.id === id) || {}).n || id;
   const toggle = m => { const n = new Set(fuera); if (activo(m.id)) { n.add(m.id); VT_MODULOS.filter(x => x.req === m.id).forEach(x => n.add(x.id)); } else { n.delete(m.id); if (m.req) n.delete(m.req); } setOff([...n]); };
@@ -14687,7 +14703,7 @@ function PantallaTienda({ ctx, productos, setProductos, pedidos, setPedidos, onC
         chk("Hago envíos a domicilio", "envio"),
         cfg.envio && campoCfg("Costo de envío $", "costoEnvio", { inputMode: "decimal" }),
         h("div", { style: { marginTop: 10 } }, vtBtn("Guardar configuración", () => guardarCfg({ ...cfg, costoEnvio: parseFloat(cfg.costoEnvio) || 0, whatsapp: String(cfg.whatsapp || "").replace(/\D/g, "") }), "p", !esAdmin && false))),
-      h(VtPasarelasCfg, { ctx, cfg, setCfg, guardarCfg, esAdmin }),
+      vtMod("pasarelas") && h(VtPasarelasCfg, { ctx, cfg, setCfg, guardarCfg, esAdmin }),
       h(MenuQrCfg, { ctx, cfg, setCfg, guardarCfg, mesas: mesas || [] }),
       h(TiendaReglas, { cfg, setCfg, onGuardar: () => { const n2 = { ...cfg, minimo: parseFloat(cfg.minimo) || 0, zonas: (cfg.zonas || []).filter(z => String(z.nombre || "").trim()).map(z => ({ nombre: String(z.nombre).trim(), costo: parseFloat(z.costo) || 0, minimo: parseFloat(z.minimo) || 0 })), cupones: (cfg.cupones || []).filter(c => c.codigo).map(c => ({ ...c, valor: parseFloat(c.valor) || 0, minimo: parseFloat(c.minimo) || 0, usos: parseInt(c.usos) || 0 })) }; guardarCfg(n2); setMsg("Reglas guardadas"); } }),
       h("div", { style: caja },
@@ -17163,7 +17179,7 @@ function ManufacturaScreen({ productos, setProductos, recetas, setRecetas, orden
   const chip = e => ({ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: e === "terminada" ? "#34D39922" : e === "programada" ? "#FBBF2422" : e === "en proceso" ? "#3B82F622" : "#F26D6D22", color: e === "terminada" ? COLORS.green : e === "programada" ? "#FBBF24" : e === "en proceso" ? "#3B82F6" : COLORS.red });
   const lista = (ordenes || []).slice().sort((a, b) => a.fecha < b.fecha ? 1 : -1);
   return h("div", { style: { padding: 16, maxWidth: 900, margin: "0 auto" } },
-    h("div", { style: { display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" } }, [["ordenes", "🏭 Producción"], ["recetas", "📋 Recetas"], ["plan", "🧮 Planear"], ["bom", "🌳 Estructura"], ["piso", "👷 Piso"], ["centros", "🏗 Centros"], ["cal", "✅ Calidad"], ["mant", "🔧 Mantenim."], ["subc", "🚚 Subcontrato"], ["plm", "🗂 Versiones"]].map(t => h("button", { key: t[0], onClick: () => setTab(t[0]), style: pill(tab === t[0]) }, t[1]))),
+    h("div", { style: { display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" } }, [["ordenes", "🏭 Producción"], ["recetas", "📋 Recetas"], ["plan", "🧮 Planear"], ["bom", "🌳 Estructura"], ["piso", "👷 Piso"], ["centros", "🏗 Centros"], ["cal", "✅ Calidad"], ["mant", "🔧 Mantenim."], ["subc", "🚚 Subcontrato"], ["plm", "🗂 Versiones"]].filter(t => { const r = { bom: "mfgavanzado", piso: "mfgavanzado", centros: "mfgavanzado", mant: "mfgavanzado", subc: "mfgavanzado", plm: "mfgavanzado", cal: "calidad" }[t[0]]; return !r || vtMod(r); }).map(t => h("button", { key: t[0], onClick: () => setTab(t[0]), style: pill(tab === t[0]) }, t[1]))),
     msg && h("div", { style: { fontSize: 12.5, color: COLORS.green, marginBottom: 8 } }, msg),
     tab === "ordenes" && h("div", null, h("div", { style: { marginBottom: 12 } }, vtBtn("+ Nueva orden de producción", () => recetas.length ? setOrdEd({}) : setMsg("Primero crea una receta en la pestaña Recetas."), "p")),
       !lista.length && h("div", { style: { fontSize: 13, color: COLORS.textMuted, lineHeight: 1.5 } }, "Aquí registras lo que produces: al terminar una orden se descuentan los insumos, se suma el producto terminado y se actualiza su costo."),
@@ -17489,7 +17505,7 @@ function ContabilidadScreen({ datos, ctaX, setCtaX, polX, setPolX, cfgX, setCfgX
   const guardarPol = p => { if ((cfg.cierres || []).indexOf(p.fecha.slice(0, 7)) >= 0) return setMsg("Ese mes está cerrado. Reábrelo en Catálogo y ajustes."); setPolX(prev => prev.some(x => x.id === p.id) ? prev.map(x => x.id === p.id ? p : x) : [...prev, p]); setPolEd(null); };
   const er = vtEstadoRes(todas, ctas, anual ? y + "-01-01" : desde, hasta); const bal = vtBalance(todas, ctas, hasta);
   const iva = { tras: ((sal["208"] || {}).haber || 0) - ((sal["208"] || {}).debe || 0), acre: ((sal["118"] || {}).debe || 0) - ((sal["118"] || {}).haber || 0) };
-  const tabsOp = [["resumen", "🏠 Resumen"], ["clientes", "🧾 Facturas clientes"], ["proveedores", "📥 Facturas proveedores"], ["pagos", "💳 Cobros y pagos"], ["borradores", "📝 " + vtBorrNom()]]; const tabs = [["empezar", "🧭 Empezar"], ["estados", "📊 Estados"], ["bancos", "🏦 Bancos y cajas"], ["banco", "🏦 Conciliar banco"], ["fiscalbox", "🔗 FiscalBox · IVA"], ["analitica", "🎯 Analítica"], ["diario", "📒 Diario"], ["mayor", "📖 Mayor"], ["balanza", "⚖ Balanza"], ["polizas", "✍ Pólizas"], ["cat", "⚙ Catálogo y ajustes"]]; const esOp = tabsOp.some(t => t[0] === tab);
+  const tabsOp = [["resumen", "🏠 Resumen"], ["clientes", "🧾 Facturas clientes"], ["proveedores", "📥 Facturas proveedores"], ["pagos", "💳 Cobros y pagos"], ["borradores", "📝 " + vtBorrNom()]]; const tabs = [["empezar", "🧭 Empezar"], ["estados", "📊 Estados"], ["bancos", "🏦 Bancos y cajas"], ["banco", "🏦 Conciliar banco"], ["fiscalbox", "🔗 FiscalBox · IVA"], ["analitica", "🎯 Analítica"], ["diario", "📒 Diario"], ["mayor", "📖 Mayor"], ["balanza", "⚖ Balanza"], ["polizas", "✍ Pólizas"], ["cat", "⚙ Catálogo y ajustes"]].filter(t => { const r = { banco: "banco", fiscalbox: "sat", analitica: "analitica" }[t[0]]; return !r || vtMod(r); }); const esOp = tabsOp.some(t => t[0] === tab);
   const ctasConMov = ctas.filter(c => sal[c.id]);
   const ayuda = t => h("div", { style: { fontSize: 12.5, color: COLORS.textMuted, lineHeight: 1.5, marginBottom: 10 } }, t);
   const efeTot = ctas.filter(c => /^10[0-9]$/.test(String(c.id))).reduce((a, c) => a + ((sal[c.id] || {}).fin || 0), 0);
@@ -17599,22 +17615,24 @@ const VT_PLANES_PROP = [
   { id: "distribuidor", nombre: "Empresa", precio_mensual: 799, max_puntos_venta: 15, max_usuarios: 30, max_productos: 20000, orden: 4 }
 ];
 const VT_PLAN_MODS = (() => {
-  const b = ["pos", "reportes", "gastos", "adjuntos"]; const pro = b.concat(["facturacion", "cotizaciones", "mayoreo", "credito", "compras", "tienda", "comisiones", "tarjetas", "flujo"]);
-  const neg = pro.concat(["crm", "recurrentes", "requisiciones", "presupuestos", "viaticos", "rrhh", "sucursales", "rutas", "servicios", "agenda", "tickets", "campanas", "portales", "proyectos"]);
+  const b = ["pos", "reportes", "gastos", "adjuntos"]; const pro = b.concat(["facturacion", "cotizaciones", "mayoreo", "credito", "compras", "tienda", "pasarelas", "comisiones", "tarjetas", "flujo"]);
+  const neg = pro.concat(["crm", "recurrentes", "requisiciones", "presupuestos", "viaticos", "rrhh", "sucursales", "rutas", "servicios", "agenda", "tickets", "campanas", "portales", "proyectos", "firma", "leads", "automatizaciones", "intercompania", "costeo", "lotes", "picking", "pronostico", "proyectospro", "banco"]);
   return { basico: b, pro, negocio: neg, distribuidor: VT_MODULOS.map(m => m.id) };
 })();
 const VT_EXTRAS_DEF = [
-  { id: "tienda", n: "Tienda en línea", i: "🏬", precio: 99, mods: ["tienda"], a: [0], k: "tienda", landing: true, u: ["Catálogo con tu marca y código QR", "Pedidos y chat con clientes"] },
+  { id: "tienda", n: "Tienda en línea", i: "🏬", precio: 99, mods: ["tienda", "pasarelas"], a: [0], k: "tienda", landing: true, u: ["Catálogo con tu marca y código QR", "Pedidos y chat con clientes"] },
   { id: "serv", n: "Servicios", i: "🔧", precio: 149, mods: ["servicios", "agenda", "tickets"], a: [0, 1], k: "serv", landing: true, u: ["Órdenes de servicio con anticipos", "Agenda de citas y mesa de ayuda"] },
   { id: "equipo", n: "Equipo", i: "👥", precio: 149, mods: ["rrhh", "viaticos"], a: [0, 1], k: "equipo", landing: true, u: ["Empleados con PIN y checador", "RR. HH., nómina y viáticos"] },
-  { id: "oper", n: "Operación", i: "🚚", precio: 99, mods: ["rutas", "crm"], a: [0, 1], k: "pos", landing: true, u: ["Rutas de entrega y reparto", "Clientes y seguimiento (CRM)"] },
+  { id: "oper", n: "Operación", i: "🚚", precio: 99, mods: ["rutas", "crm", "leads", "firma", "automatizaciones"], a: [0, 1], k: "pos", landing: true, u: ["Rutas de entrega y reparto", "Clientes y seguimiento (CRM)"] },
   { id: "suc", n: "Multisucursal", i: "🏬", precio: 149, mods: ["sucursales"], a: [1], k: "pos", landing: true, u: ["Varias sucursales en una sola empresa", "Inventario, cajas y equipo por sucursal"] },
-  { id: "conta", n: "Contabilidad", i: "🧮", precio: 149, mods: ["facturacion", "presupuestos"], a: [0, 1], k: "cfdi", landing: true, u: ["Pólizas, balanza y bancos", "Estados financieros"] },
+  { id: "conta", n: "Contabilidad", i: "🧮", precio: 149, mods: ["facturacion", "presupuestos", "banco", "sat", "analitica"], a: [0, 1], k: "cfdi", landing: true, u: ["Pólizas, balanza y bancos", "Estados financieros"] },
+  { id: "invpro", n: "Inventario avanzado", i: "📦", precio: 99, mods: ["invavanzado", "costeo", "lotes", "picking", "pronostico", "intercompania"], a: [0, 1], k: "pos", landing: true, u: ["Costeo, lotes con caducidad y picking", "Pronóstico y compras entre empresas"] },
+  { id: "proy", n: "Proyectos avanzados", i: "📅", precio: 79, mods: ["proyectos", "proyectospro"], a: [0, 1], k: "serv", landing: true, u: ["Gantt, hitos y rentabilidad", "Hojas de horas del equipo"] },
   { id: "ia", n: "Asistente IA", i: "✨", precio: 149, mods: ["asistente"], a: [0, 1, 2], k: "ia", landing: true, u: ["20 consultas al día con tus datos", "Registra gastos con una frase"] },
   { id: "fact", n: "Facturación (CFDI) · antiguo", precio: 149, mods: ["facturacion"], landing: false },
   { id: "mkt", n: "Marketing y redes con IA", precio: 99, mods: ["marketing"], landing: false },
   { id: "conn", n: "Mercado Libre, Shopify y WooCommerce", precio: 149, mods: ["conectores"], landing: false },
-  { id: "manu", n: "Manufactura y control de calidad", precio: 149, mods: ["manufactura", "calidad"], landing: false },
+  { id: "manu", n: "Manufactura y control de calidad", precio: 149, mods: ["manufactura", "calidad", "mfgavanzado"], landing: false },
   { id: "rest", n: "Restaurante", precio: 99, mods: ["restaurante"], landing: false },
   { id: "cons", n: "Consignación y rentas de equipo", precio: 79, mods: ["consignacion", "rentas"], landing: false },
   { id: "api", n: "API y webhooks", precio: 99, mods: ["api"], landing: false },
