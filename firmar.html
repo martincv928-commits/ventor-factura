@@ -1,0 +1,40 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Firma de documento</title>
+<style>:root{--bg:#f6f6f7;--c:#fff;--t:#111;--m:#666;--b:#e2e2e5;--a:#16a34a;--r:#dc2626}@media(prefers-color-scheme:dark){:root{--bg:#0e0e10;--c:#18181b;--t:#f4f4f5;--m:#a1a1aa;--b:#2a2a2f}}
+body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 system-ui,sans-serif}.w{max-width:640px;margin:0 auto;padding:16px}.card{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:16px;margin-bottom:12px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:var(--m);font-size:13px}pre{white-space:pre-wrap;word-wrap:break-word;font:14px/1.55 system-ui,sans-serif;margin:8px 0}
+input[type=text]{width:100%;box-sizing:border-box;padding:11px;border:1px solid var(--b);border-radius:10px;font-size:16px;background:var(--c);color:var(--t);margin:6px 0}
+canvas{width:100%;height:170px;border:1px dashed var(--m);border-radius:10px;background:#fff;touch-action:none;display:block}
+.btn{width:100%;padding:13px;border:0;border-radius:10px;background:var(--a);color:#fff;font-weight:700;font-size:16px;margin-top:10px}.btn.s{background:transparent;color:var(--m);border:1px solid var(--b)}.btn:disabled{opacity:.5}
+.err{color:var(--r);font-size:13.5px}.ok{color:var(--a)}.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:var(--b)}code{font-size:11.5px;word-break:break-all}label.k{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;margin-top:8px}</style></head><body><div class="w" id="app">Cargando…</div>
+<script>
+const API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-contacto",KEY="sb_publishable_p0-ZWH8XPPyC_KSTOzG9vw_OENVq8o-";
+const C=String(new URLSearchParams(location.search).get("c")||"").toUpperCase();
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=s=>document.querySelector(s);
+async function api(accion,d){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({accion,c:C,...d})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Error "+r.status);return j}
+let D=null,img="",hay=false,msg="";
+const fmt=f=>f?new Date(f).toLocaleString("es-MX"):"";
+function doc(){return `<div class="card"><div class="sub">${esc(D.empresa)}</div><h1>${esc(D.titulo)}</h1>${D.total>0?`<div class="sub">Importe: <b>$${Number(D.total).toLocaleString("es-MX",{minimumFractionDigits:2})}</b></div>`:""}<pre>${esc(D.cuerpo)}</pre></div>`}
+function pintar(){
+  const a=$("#app");if(!D){a.innerHTML=`<div class="card"><h1>Documento no disponible</h1><p class="err">${esc(msg)}</p></div>`;return}
+  if(D.estado==="firmada"){a.innerHTML=doc()+`<div class="card"><span class="tag ok">✔ Firmado</span><p>Firmado por <b>${esc(D.firmado_nombre)}</b> el ${fmt(D.firmado_en)}.</p><div class="sub">Huella digital del documento (SHA-256):</div><code>${esc(D.hash)}</code><button class="btn s" onclick="window.print()">Imprimir / guardar constancia</button></div>`;return}
+  if(D.estado!=="pendiente"){a.innerHTML=doc()+`<div class="card"><span class="tag">${esc(D.estado)}</span><p class="sub">Este documento ya no está disponible para firma. Pide uno nuevo a ${esc(D.empresa)}.</p></div>`;return}
+  a.innerHTML=doc()+`<div class="card"><h1 style="font-size:17px">Tu firma</h1><div class="sub">Vence el ${fmt(D.expira_en)}</div>
+  <input type="text" id="nom" placeholder="Tu nombre completo" value="${esc(D.firmante||"")}" autocomplete="name">
+  <canvas id="cv"></canvas><div class="sub" style="display:flex;justify-content:space-between"><span>Firma con el dedo en el recuadro</span><a href="#" id="bor">Borrar</a></div>
+  <label class="k"><input type="checkbox" id="ac"><span>Leí el documento y acepto firmarlo electrónicamente. Reconozco que mi firma tiene el mismo valor que mi firma autógrafa y que se guardará mi nombre, fecha, dirección IP y dispositivo como evidencia.</span></label>
+  ${msg?`<p class="err">${esc(msg)}</p>`:""}<button class="btn" id="fir">Firmar documento</button><button class="btn s" id="rec">No estoy de acuerdo</button></div>`;
+  const cv=$("#cv"),r=cv.getBoundingClientRect();cv.width=Math.round(r.width*2);cv.height=Math.round(r.height*2);const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);x.lineWidth=4;x.lineCap="round";x.strokeStyle="#111";
+  let dib=false;const pt=e=>{const q=cv.getBoundingClientRect();return[(e.clientX-q.left)*cv.width/q.width,(e.clientY-q.top)*cv.height/q.height]};
+  cv.onpointerdown=e=>{e.preventDefault();dib=true;const[p,q]=pt(e);x.beginPath();x.moveTo(p,q);try{cv.setPointerCapture(e.pointerId)}catch(z){}};
+  cv.onpointermove=e=>{if(!dib)return;e.preventDefault();const[p,q]=pt(e);x.lineTo(p,q);x.stroke();hay=true};
+  cv.onpointerup=cv.onpointerleave=()=>{if(dib){dib=false;if(hay)img=cv.toDataURL("image/jpeg",.6)}};
+  $("#bor").onclick=e=>{e.preventDefault();x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);hay=false;img=""};
+  $("#fir").onclick=async()=>{msg="";if(!hay||!img){msg="Dibuja tu firma en el recuadro";pintar2();return}
+    const b=$("#fir");b.disabled=true;b.textContent="Firmando…";
+    try{const j=await api("firma_firmar",{nombre:$("#nom").value,img,acepto:$("#ac").checked});D.estado="firmada";D.firmado_nombre=$("#nom").value;D.firmado_en=j.firmado_en;D.hash=j.hash;pintar()}catch(e){msg=e.message;const n=$("#nom").value,ac=$("#ac").checked;pintar2(n,ac)}};
+  $("#rec").onclick=async()=>{const m=prompt("¿Por qué no estás de acuerdo? (opcional)");if(m===null)return;try{await api("firma_rechazar",{motivo:m});D.estado="rechazada";pintar()}catch(e){msg=e.message;pintar2()}};
+}
+function pintar2(n,ac){const e=$(".err");if(e)e.remove();const p=document.createElement("p");p.className="err";p.textContent=msg;$("#fir").before(p);$("#fir").disabled=false;$("#fir").textContent="Firmar documento"}
+(async()=>{try{D=await api("firma_ver",{})}catch(e){msg=e.message}pintar()})();
+</script></body></html>
