@@ -3,6 +3,7 @@
   var API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-contacto",KEY="sb_publishable_p0-ZWH8XPPyC_KSTOzG9vw_OENVq8o-";
   var Q=new URLSearchParams(location.search),E=String(window.__E||Q.get("e")||"").toLowerCase();
   if(!E||Q.get("mesa"))return;
+  if(window.self!==window.top||document.getElementById("vvb"))return;
   var LS="vt_vivo_"+E,cod="",n=0,abierto=false,timer=null,busy=false;
   try{cod=localStorage.getItem(LS)||""}catch(e){}
   function api(a,d){return fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify(Object.assign({accion:a,e:E},d))}).then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(j.error||"Error");e.cerrado=j.cerrado;throw e}return j})})}
