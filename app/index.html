@@ -1528,11 +1528,6 @@ const inputStyle = {
   fontSize: 13.5,
   outline: "none"
 };
-const alertaStyle = (color) => ({
-  display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10,
-  padding: "10px 14px", borderRadius: 8, cursor: "pointer",
-  background: `${color}1F`, border: `1px solid ${color}`, fontSize: 13, color: COLORS.text,
-});
 function vtLimPv(ctx) { const m = ctx && ctx.plan && Number(ctx.plan.max_puntos_venta); if (!m) return 0; return m + (parseInt(((ctx.empresa || {}).extras || {}).pv) || 0); }
 function vtSucDe(pv) { return String((pv && (pv.sucursal || pv.nombre)) || "").trim(); }
 function vtSucNombres(pvs) { const o = []; (pvs || []).forEach(q => { const n = vtSucDe(q); if (n && o.indexOf(n) < 0) o.push(n); }); return o; }
@@ -3233,13 +3228,6 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
     });
   };
 
-  const registrarPagoCompra = (ordenId, monto) => {
-    setCompras(prev => prev.map(c => {
-      if (c.id !== ordenId) return c;
-      const nuevoSaldo = Math.max(0, c.saldoPendientePago - monto);
-      return { ...c, saldoPendientePago: nuevoSaldo, pagoEstado: nuevoSaldo === 0 ? "pagada" : "pendiente" };
-    }));
-  };
   const recibirOrdenCompra = ordenId => {
     const orden = compras.find(c => c.id === ordenId);
     if (!orden) return;
@@ -8820,7 +8808,7 @@ function PantallaSoporte({ ctx }) {
   const cargar = async () => { try { setTs(await VT.api("/rest/v1/vt_tickets?select=*&empresa_id=eq." + ctx.empresa.id + "&order=creado_en.desc")); } catch (e) {} };
   React.useEffect(() => { cargar(); }, []);
   const enviar = async () => {
-    if (!f.asunto.trim()) return;
+    if (!f.asunto.trim()) { setMsg("⚠ Escribe un asunto para poder enviarlo."); return; }
     try { await VT.api("/rest/v1/vt_tickets", { method: "POST", headers: { Prefer: "return=minimal" }, body: { empresa_id: ctx.empresa.id, usuario_id: ctx.usuario_id, asunto: f.asunto.trim(), mensaje: f.mensaje.trim() } }); setF({ asunto: "", mensaje: "" }); setMsg("Enviado. Te responderemos por aquí."); cargar(); } catch (e) { setMsg("⚠ No se pudo enviar: " + e.message); }
   };
   return h("div", { className: "dash-wrap", style: { padding: "28px 24px", maxWidth: 760, margin: "0 auto", width: "100%" } },
@@ -13152,7 +13140,7 @@ function CrmScreen({ ctx, ops, setOps, etapas, setEtapas, clientes, usuarios, on
   const tarjeta = o => { const pa = (o.acts || []).filter(a => !a.hecha).sort((x, y) => String(x.fecha).localeCompare(String(y.fecha)))[0]; return h("div", { key: o.id, onClick: () => setEd(o), style: { background: COLORS.card, border: "1px solid " + COLORS.border, borderRadius: 10, padding: 10, marginBottom: 8, cursor: "pointer" } },
     h("div", { style: { fontWeight: 700, fontSize: 13.5 } }, o.titulo), h("div", { style: { fontSize: 12, color: COLORS.textMuted } }, (o.contacto || {}).nombre || ""), h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12.5, marginTop: 4 } }, h("b", null, money(Number(o.valor) || 0)), h("span", { style: { color: COLORS.textMuted } }, (o.prob || 0) + "%")),
     pa && h("div", { style: { fontSize: 11.5, marginTop: 4, color: pa.fecha < hoy ? COLORS.red : pa.fecha === hoy ? COLORS.amber : COLORS.textMuted } }, (VT_CRM_ACTS.find(t => t[0] === pa.tipo) || ["", "•"])[1] + " " + vtFmtCorta(pa.fecha + "T12:00")),
-    h("div", { style: { display: "flex", gap: 4, marginTop: 6 } }, h("button", { onClick: e => { e.stopPropagation(); mover(o, -1); }, style: { flex: 1, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, borderRadius: 6, cursor: "pointer" } }, "◀"), h("button", { onClick: e => { e.stopPropagation(); mover(o, 1); }, style: { flex: 1, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, borderRadius: 6, cursor: "pointer" } }, "▶"))); };
+    h("div", { style: { display: "flex", gap: 4, marginTop: 6 } }, h("button", { "aria-label": "Mover a la etapa anterior", onClick: e => { e.stopPropagation(); mover(o, -1); }, style: { flex: 1, minHeight: 40, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, borderRadius: 6, cursor: "pointer" } }, "◀"), h("button", { "aria-label": "Mover a la etapa siguiente", onClick: e => { e.stopPropagation(); mover(o, 1); }, style: { flex: 1, minHeight: 40, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, borderRadius: 6, cursor: "pointer" } }, "▶"))); };
   const filaAct = (x, col) => h("div", { key: x.o.id + x.a.id, style: { display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderTop: "1px solid " + COLORS.border } },
     h("input", { type: "checkbox", onChange: () => guardar({ ...x.o, acts: x.o.acts.map(a => a.id === x.a.id ? { ...a, hecha: new Date().toISOString(), por: yo } : a) }) }),
     h("div", { style: { flex: 1, minWidth: 0, cursor: "pointer" }, onClick: () => setEd(x.o) }, h("div", { style: { fontSize: 13.5 } }, (VT_CRM_ACTS.find(t => t[0] === x.a.tipo) || ["", "•"])[1] + " · " + x.o.titulo), h("div", { style: { fontSize: 12, color: col || COLORS.textMuted } }, vtFmtCorta(x.a.fecha + "T12:00") + ((x.o.contacto || {}).nombre ? " · " + x.o.contacto.nombre : "") + (x.a.nota ? " · " + x.a.nota : ""))),
@@ -13868,7 +13856,7 @@ function vtPantOff(activos) {
   const off = new Set(); Object.keys(porPant).forEach(p => { if (!porPant[p].some(id => activos.has(id))) off.add(p); }); return off;
 }
 function vtMod(id) { return !window.VT_MODS || window.VT_MODS.has(id); }
-function vtModSwitch(on, dis, fn) { return React.createElement("button", { onClick: dis ? undefined : fn, disabled: dis, "aria-pressed": on, style: { width: 46, height: 26, borderRadius: 13, border: "none", background: on ? COLORS.green : COLORS.border, position: "relative", cursor: dis ? "not-allowed" : "pointer", flexShrink: 0, opacity: dis ? 0.5 : 1, transition: "background .15s" } }, React.createElement("span", { style: { position: "absolute", top: 3, left: on ? 23 : 3, width: 20, height: 20, borderRadius: 10, background: "#fff", transition: "left .15s", boxShadow: "0 1px 3px rgba(0,0,0,.3)" } })); }
+function vtModSwitch(on, dis, fn) { return React.createElement("button", { onClick: dis ? undefined : fn, disabled: dis, role: "switch", "aria-checked": !!on, "aria-pressed": on, style: { width: 46, height: 26, borderRadius: 13, border: "none", background: on ? COLORS.green : COLORS.border, position: "relative", cursor: dis ? "not-allowed" : "pointer", flexShrink: 0, opacity: dis ? 0.5 : 1, transition: "background .15s" } }, React.createElement("span", { style: { position: "absolute", top: 3, left: on ? 23 : 3, width: 20, height: 20, borderRadius: 10, background: "#fff", transition: "left .15s", boxShadow: "0 1px 3px rgba(0,0,0,.3)" } })); }
 function ModulosScreen({ ctx, permitidos, off, setOff, onSoporte }) {
   const h = React.createElement; const ok = Array.isArray(permitidos) ? new Set(permitidos) : null; if (ok) { [["invavanzado", "compras"], ["apartados", "pos"], ["lealtad", "pos"], ["promos", "pos"]].forEach(([n, pa]) => { if (ok.has(pa)) ok.add(n); }); ok.add("inicio_pro"); vtLegacy(ok); } const fuera = new Set(off || []); if (!fuera.has("+inicio_pro")) fuera.add("inicio_pro");
   const activo = id => (!ok || ok.has(id)) && !fuera.has(id); const permitido = id => !ok || ok.has(id);
@@ -15495,7 +15483,7 @@ function CierreTurnoModal({ datos, cfg, productos, almPv, masVend, seg, emps, em
     h("div", { style: { marginTop: 14 } }, vtBtn("Listo", onCerrar, "p"))));
   return h(Modal, { abierto: true, onCerrar, titulo: paso === "resumen" ? "¿Cerrar el turno?" : (lineas.length ? "Inventario de entrega" : "Firma de entrega"), ancho: 480 }, h("div", { style: { padding: 4 } },
     paso === "resumen" ? h("div", null,
-      window.VT_IRPANT && h("div", { style: { textAlign: "right", marginBottom: 6 } }, h("button", { onClick: () => { onCerrar(); window.VT_IRPANT("puntosventa"); }, style: { background: "transparent", border: "none", color: COLORS.amberTx, fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 } }, "⚙ Configurar cierre")),
+      window.VT_IRPANT && h("div", { style: { textAlign: "right", marginBottom: 6 } }, h("button", { onClick: () => { onCerrar(); window.VT_IRPANT("puntosventa"); }, style: { background: "transparent", border: "none", color: COLORS.amberTx, fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: "10px 6px", minHeight: 40 } }, "⚙ Configurar cierre")),
       h("div", { style: { display: "grid", gridTemplateColumns: ciego ? "1fr" : "1fr 1fr", gap: 8, marginBottom: 10 } },
         !ciego && h("div", { style: caja }, h("div", { style: { fontSize: 12, color: COLORS.textMuted } }, "Esperado en caja"), h("div", { style: { fontSize: 20, fontWeight: 700 } }, money(esperado))),
         h("div", { style: caja }, h("div", { style: { fontSize: 12, color: COLORS.textMuted } }, "Efectivo contado"), h("div", { style: { fontSize: 20, fontWeight: 700 } }, money(contado)))),
@@ -18507,7 +18495,7 @@ function vtAsistente(q, d, mem) {
   if (/venta|vendi|vendimos|vendo|como voy|como va|como vamos|como me fue|como nos fue|resumen|ingresos|cuanto llevo|facturacion|cuanto he vendido|entrada|cuanto hice|cuanto saque/.test(n) || per.exp) {
     if (!enP.length && !enA.length) return R("No hay ventas " + per.per + ".");
     const dline = vtDelta(tot, totA).replace("periodo anterior", per.per === "hoy" ? "ayer" : "el periodo anterior");
-    return done(R("Ventas " + per.per + ": " + $(tot) + dline + "\n• Mostrador: " + $(totMos) + " (" + tick.length + " tickets" + (tick.length ? ", promedio " + $(totMos / tick.length) : "") + ")\n• Mayoreo: " + $(totMay) + " (" + may.length + ")" + (rep ? "\nGastos: " + $(totGas) + " · Compras: " + $(totCom) : "") + "\nPor cobrar: " + $(cxc.reduce((t, v) => t + v.saldoPendiente, 0)), [nav("Ver reportes", "reportes")]), "ventas");
+    return done(R("Ventas " + per.per + ": " + $(tot) + dline + "\n• Mostrador: " + $(totMos) + " (" + tick.length + " tickets" + (tick.length ? ", promedio " + $(totMos / tick.length) : "") + ")\n• Mayoreo: " + $(totMay) + " (" + may.length + ")" + (rep ? "\nGastos: " + $(totGas) + " · Compras: " + $(totCom) : "") + "\nPor cobrar: " + $(Math.round(cxc.reduce((t, v) => t + (Number(v.saldoPendiente) || 0), 0) * 100) / 100), [nav("Ver reportes", "reportes")]), "ventas");
   }
   if (cli) return R(cli.nombre + (cli.telefono ? " · Tel. " + cli.telefono : "") + (cli.rfc ? " · RFC " + cli.rfc : "") + "\nDebe: " + $(cxc.filter(v => vtNorm(v.cliente) === vtNorm(cli.nombre)).reduce((t, v) => t + v.saldoPendiente, 0)) + "\nCompras " + per.per + ": " + $(enP.filter(v => vtNorm(v.cliente) === vtNorm(cli.nombre)).reduce((t, v) => t + v.neto, 0)), [nav("Ver cliente", "clientes")]);
   if (prod) return R("«" + prod.nombre + "»: " + $(prod.precio) + " · existencia " + prod.existencia + " " + (prod.unidad || "pza"), [nav("Abrir inventario", "inventario")]);
@@ -18534,6 +18522,7 @@ function vtSnapshotIA(d) {
     productos: (d.productos || []).filter(p => p.activo !== false).slice(0, 250).map(p => { const o = { n: p.nombre, p: p.precio, e: p.existencia, min: p.minimo }; if (ver && p.costo) o.c = p.costo; return o; }) };
   { const ciegoU = ctx.rol !== "admin" && (vtBloq(ctx, "sin_ver_ventas_turno") || ((d.puntosVenta || []).some(x => x && x.corteCiego) && !vtPuede(ctx, "caja_ver_total"))); if (ciegoU) { ["ventas_ultimos_30_dias", "ventas_mes_actual", "ventas_mes_pasado", "top_productos_mes", "cortes_recientes", "por_cobrar_por_cliente"].forEach(k => { delete snap[k]; }); snap.nota_ventas = "El usuario NO tiene permiso para ver ventas ni cortes de caja: no des cifras de ventas."; } }
   if (ver) { const gast = Object.values(gas).reduce((t, x) => t + x, 0); snap.gastos_mes_total = r2(gast); } else snap.nota_permisos = "El usuario NO tiene permiso para ver costos ni utilidades.";
+  try { snap.guia_ventor = { instrucciones: "Si el usuario pregunta CÓMO se hace algo o SI Ventor tiene una función, responde con estos módulos (nombre, qué hace, grupo) y di en qué pantalla o menú está. No digas que no tienes acceso a la documentación: esta lista ES la documentación. Si de verdad no aparece, dilo y sugiere el menú Más → Guías.", modulos: VT_MODULOS.slice(0, 80).map(m => m.n + ": " + m.d + " [" + m.g + "]"), guias: VT_GUIAS.slice(0, 70).map(g => g[1]) }; } catch (e) {}
   return snap;
 }
 
@@ -18690,7 +18679,6 @@ function vtPuedeSec(ctx, sec) {
   const sc = (ctx.permisos || {}).secciones; if (Array.isArray(sc) && sc.length && sc.indexOf(sec) < 0) return false;
   return true;
 }
-function vtPuedeVender(ctx) { return vtPuedeSec(ctx, "mayoreo"); }
 function vtBonito(nomNorm, orig) {
   const oTok = {}; String(orig || "").split(/\s+/).forEach(w => { oTok[vtNorm(w).replace(/[^a-z0-9]/g, "")] = w.replace(/[.,;:¿?¡!]+$/g, ""); });
   return String(nomNorm || "").split(" ").map(w => { const o = oTok[w.replace(/[^a-z0-9]/g, "")] || w; return o.charAt(0).toUpperCase() + o.slice(1); }).join(" ").trim();
@@ -18703,6 +18691,35 @@ function vtResCliente(nom, orig, D, cmdFn) {
 }
 function vtPendientes(D, cli) { return (D.ventasMayoreo || []).filter(v => v.estado !== "cancelada" && Number(v.saldoPendiente) > 0.005 && (String(v.clienteId) === String(cli.id) || (v.cliente && v.cliente === cli.nombre))).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)); }
 function vtTarjAs(t, fnConfirmar, cmdEditar, extra) { return { t, card: true, acc: [{ l: "✅ Confirmar", fn: fnConfirmar, cierra: true }].concat(extra || [], [{ l: "✏️ Editar", edit: cmdEditar }, { l: "✖ Cancelar", fn: () => "Cancelado, no se hizo nada.", cierra: true }]) }; }
+
+const VT_SIN_MOD = { intercompania: "otra empresa otra instancia otro negocio entre empresas ventor a ventor vender a quien usa ventor orden de compra codigo", pos: "cobrar vender mostrador caja ticket", mayoreo: "venta a credito pedido orden de venta cliente mayorista", cxcp: "cobranza fiado deben abonos cuentas por cobrar pagar", tienda: "tienda en linea pedidos web carrito", facturacion: "factura cfdi timbrar sat" };
+const VT_DUDA_RE = /\b(como (hago|se hace|se puede|puedo|le hago|hacemos|se usa|uso|registro|configuro|creo|doy de alta|activo|le hacemos|se registra|se configura)|donde (esta|veo|encuentro|se hace|puedo|configuro|activo|se ve|se configura)|se puede|es posible|(existe|tenemos|tiene|tienen|hay) (una |alguna |la |esa )?(funcion|forma|manera|opcion|funcionalidad)|funcionalidad|para que sirve|que es (el|la|un|una|los|las)\b)/;
+function vtEsDuda(t) { const n = vtNormV(t); return n.split(" ").length >= 3 && VT_DUDA_RE.test(n); }
+function vtGuiaLocal(t, D) {
+  const n = vtNormV(t); const STOP = new Set("como donde esta para por que cual cuales hago hacer puedo podemos tenemos tiene tienen hay existe una uno unos unas del los las con sin que mas muy este esa ese eso mis tus sus nuestro nuestra funcion funcionalidad forma manera opcion deja dejan permite quiero saber hacerlo vender venta llegue llegue algo alguna".split(" "));
+  const tk = n.split(" ").filter(w => w.length > 2 && !STOP.has(w)).map(w => w.slice(0, 5));
+  const tkV = n.split(" ").filter(w => w.length > 2 && !STOP.has(w)).map(w => w.slice(0, 5));
+  const venta = /\b(vender|venta|ventas|cobrar)\b/.test(n);
+  if (!tk.length && !venta) return null;
+  const sc = (txt, peso) => { const h = " " + vtNormV(txt) + " "; let c = 0; const vis = new Set(); tk.forEach(w => { if (!vis.has(w) && h.indexOf(" " + w) >= 0) { vis.add(w); c += peso; } }); return c; };
+  let mejor = null, bs = 0;
+  (typeof VT_MODULOS !== "undefined" ? VT_MODULOS : []).forEach(m => { const x = sc(m.n, 2) + sc(m.d, 1) + sc(VT_SIN_MOD[m.id] || "", 1.5); if (x > bs) { bs = x; mejor = m; } });
+  let gu = null, gs = 0;
+  (typeof VT_GUIAS !== "undefined" ? VT_GUIAS : []).forEach(g => { const x = sc(g[1], 2) + sc(g[3], 1); if (x > gs) { gs = x; gu = g; } });
+  if (bs < 2 && gs < 3) return null;
+  const acc = []; const partes = [];
+  if (mejor && bs >= 2) {
+    const act = typeof vtMod === "function" ? vtMod(mejor.id) : true;
+    const pant = mejor.par || mejor.req || mejor.id; let ok = false;
+    try { for (const g of NAV_GROUPS_BASE) for (const i of g.items) if (i.id === pant) ok = true; } catch (e) {}
+    partes.push(mejor.ico + " " + mejor.n + ": " + mejor.d + "." + (act ? "" : "\nEsta función está apagada; actívala en Más → Módulos.") + (mejor.id === "intercompania" ? "\nPasos: Compras → Órdenes de compra → «🏢 Entre empresas». Ahí mandas tu orden con un código y la otra empresa Ventor la recibe como pedido; también puedes recibir las de otros con su código." : ""));
+    if (ok && act) acc.push({ l: "Abrir " + (D.irA && vtPantLabel(pant) || pant), fn: () => D.irA(pant) });
+    else if (!act) acc.push({ l: "Ir a Módulos", fn: () => D.irA("modulos") });
+  }
+  if (gu && gs >= 3) { partes.push("📚 Guía: " + gu[1]); acc.push({ l: "📚 Abrir guía", fn: () => { vtAbrirUrl(VT_BLOG + gu[0] + ".html"); return null; } }); }
+  if (!partes.length) return null;
+  return { t: partes.join("\n\n") + "\n\n(Respuesta sin costo)", acc };
+}
 function vtIntencion(txt, D) {
   const orig = String(txt || "").trim();
   const n = vtNorm(orig).replace(/[¿?¡!]/g, " ").replace(/\s+/g, " ").trim();
@@ -18911,7 +18928,7 @@ function VtBurbujaIA({ datos, onGasto, irA, onVenta, onCliente, pant }) {
 function AsistenteScreen({ datos, onGasto, irA, compacto, onVenta, onCliente, pant }) {
   const h = React.createElement; const memR = React.useRef({}); const fin = React.useRef(null);
   const WEL = { r: "bot", welcome: true, t: "Hola, soy tu asistente de Ventor. Respondo con los datos de tu negocio y hago cosas por ti: ventas, cotizaciones, abonos, productos, ajustes y recordatorios. Prueba: «hazme una venta para Pedro López por 3 jabones y 2 cloros»." };
-  const [msgs, setMsgs] = React.useState(() => { const pv = vtChatCargar(datos.ctx || {}); return pv.length ? pv.map(x => ({ ...x, acc: [] })).concat([{ r: "bot", welcome: true, t: "Seguimos donde nos quedamos (guardo tu conversación 15 días en este dispositivo). ¿Qué necesitas?" }]) : [WEL]; });
+  const [msgs, setMsgs] = React.useState(() => { const pv = vtChatCargar(datos.ctx || {}); return pv.length ? pv.map(x => ({ ...x, acc: [] })).concat((Date.now() - (pv[pv.length - 1].ts || 0)) > 6 * 3600e3 ? [{ r: "bot", welcome: true, t: "Seguimos donde nos quedamos (guardo tu conversación 15 días en este dispositivo). ¿Qué necesitas?" }] : []) : [WEL]; });
   const [alOff, setAlOff] = React.useState(0); const [hablar, setHablar] = React.useState(() => { try { return localStorage.getItem("vt_ia_voz") === "1"; } catch (e) { return false; } }); const hablarR = React.useRef(hablar); hablarR.current = hablar;
   React.useEffect(() => { if (!pen0.current) vtChatGuardar(datos.ctx || {}, msgs); }, [msgs]);
   const pen0 = React.useRef(false); const [q, setQ] = React.useState(""); const [ia, setIa] = React.useState(null); const [compraPts, setCompraPts] = React.useState(false); const [umbralPts, setUmbralPts] = React.useState(10);  const [pen, setPenR] = React.useState(false); const setPen = v => { pen0.current = v; setPenR(v); }; const [usuarios, setUsuarios] = React.useState(null); const [modo, setModoR] = React.useState(() => { try { return localStorage.getItem("vt_ia_modo") || (localStorage.getItem("vt_ia_on") === "0" ? "gratis" : "ia"); } catch (e) { return "ia"; } }); const [oyendo, setOyendo] = React.useState(false); const [msgVoz, setMsgVoz] = React.useState(""); const recR = React.useRef(null); const enviarR = React.useRef(null); const [histIa, setHistIa] = React.useState(false);
@@ -18961,7 +18978,9 @@ function AsistenteScreen({ datos, onGasto, irA, compacto, onVenta, onCliente, pa
     const hist = msgs.filter(x => !x.welcome && !x.vivo && x.t).slice(-8).map(x => ({ r: x.r, t: String(x.t).slice(0, 1200) }));
     const sale = (x, c) => { setMsgs(m => [...m, { r: "bot", t: x.t + (c && x.ia ? "\n\n— ✨ Usó " + c + (c === 1 ? " ventopoint" : " ventopoints") : ""), acc: x.acc, ia: x.ia, tabla: x.tabla, card: !!x.card, ts: Date.now() }]); if (hablarR.current && !x.card) vtHablar(x.t); };
     if (prof && ia && ia.disponible) { if (!vtConfirmaPts(cPr, "análisis avanzado de tu base")) return; setMsgs(m => [...m, { r: "yo", t, ts: ts0 }]); setPen(true); const x = await llamarIA(t, hist, true); setPen(false); sale(x, cPr); return; }
-    const r = vtAsistente(t, D, memR.current);
+    const esD = vtEsDuda(t);
+    if (esD) { const gl = vtGuiaLocal(t, D); if (gl) { setMsgs(m => [...m, { r: "yo", t, ts: ts0 }, { r: "bot", t: gl.t, acc: gl.acc, ts: ts0 }]); if (hablarR.current) vtHablar(gl.t.replace(/\n+/g, ". ")); return; } }
+    const r0 = vtAsistente(t, D, memR.current); const r = (esD && !/\b(quien|quienes|cuanto|cuantos|cuantas|me debe|me deben|debo)\b/.test(vtNormV(t))) ? { t: "No encontré eso en el mapa de Ventor. Revisa las guías en 📚 o pregúntale a la IA.", acc: [{ l: "📚 Ver guías", fn: () => irA("guias") }], noEntendi: true } : r0;
     if (r.noEntendi && ia && ia.disponible && usaIa) { setMsgs(m => [...m, { r: "yo", t, ts: ts0 }]); setPen(true); const x = await llamarIA(t, hist); setPen(false); sale(x, cIa); return; }
     if (r.noEntendi && ia && !ia.disponible && ia.por_video && vtAdsActivo() && vtAdsElegible(window.VT_ADS_CTX)) { setMsgs(m => [...m, { r: "yo", t }, { r: "bot", t: r.t + "\n\nSi quieres, mira un video corto y le pregunto a la IA (1 consulta de prueba gratis).", acc: [{ l: "📺 Ver video y preguntar a la IA", video: t }] }]); return; }
     setMsgs(m => [...m, { r: "yo", t, ts: ts0 }, { r: "bot", t: r.t, acc: r.acc, ts: ts0 }]); if (hablarR.current) vtHablar(r.t);
@@ -18981,7 +19000,7 @@ function AsistenteScreen({ datos, onGasto, irA, compacto, onVenta, onCliente, pa
     setMsgs(m => m.map((x, j) => j === i ? { ...x, acc: cierra ? [] : x.acc.filter(z => z === a ? false : !!z.ask) } : x).concat(typeof out === "string" ? [{ r: "bot", t: out, ts: Date.now() }] : (out && out.t ? [{ r: "bot", t: out.t, ts: Date.now(), acc: out.undo ? [{ l: "↩ Deshacer", undo: out.undo }] : [] }] : [])));
     if (hablarR.current && typeof out === "string") vtHablar(out);
   };
-  const preguntarIA = async (i) => { const pr = msgs.slice(0, i).reverse().find(m => m.r === "yo"); if (!pr || pen) return; setPen(true); const x = await llamarIA(pr.t, msgs.slice(Math.max(0, i - 7), i)); setPen(false); setMsgs(m => [...m, { r: "bot", t: x.t, acc: x.acc, ia: x.ia, tabla: x.tabla }]); };
+  const preguntarIA = async (i) => { const pr = msgs.slice(0, i).reverse().find(m => m.r === "yo"); if (!pr || pen) return; if (!vtConfirmaPts(cIa, "pregunta a la IA")) return; setPen(true); const x = await llamarIA(pr.t, msgs.slice(Math.max(0, i - 7), i)); setPen(false); setMsgs(m => [...m, { r: "bot", t: x.t + (x.ia ? "\n\n— ✨ Usó " + cIa + (cIa === 1 ? " ventopoint" : " ventopoints") : ""), acc: x.acc, ia: x.ia, tabla: x.tabla, ts: Date.now() }]); };
   enviarR.current = enviar;
   React.useEffect(() => { const go = () => { const t = window.__vtPreg; if (t) { window.__vtPreg = null; setTimeout(() => enviarR.current && enviarR.current(t), 200); } }; go(); window.addEventListener("vt-preg", go); return () => window.removeEventListener("vt-preg", go); }, []);
   const nuevaConv = () => { try { localStorage.removeItem(vtChatKey(datos.ctx || {})); } catch (e) {} window.VT_MEM = {}; setMsgs([WEL]); };
@@ -19573,6 +19592,7 @@ function ChecadorScreen({ ctx, regs, setRegs, esAdmin, cfg: cfgRaw, setCfg: setC
   const tab = tabs.some(t => t[0] === tab0) ? tab0 : "reg";
   React.useEffect(() => { if (autoRef.current) return; if (autoK && cfg.kioskPinH && (esAdmin || can("kiosco"))) { autoRef.current = true; setKiosk(true); } }, [cfg.kioskPinH]);
   const abrirKiosco = () => { if (!cfg.kioskPinH) { setKpin(""); setKpModal(true); } else { autoRef.current = true; setKiosk(true); } };
+  const [pDesc, setPDesc] = React.useState(0); React.useEffect(() => { if (solo || !esAdmin) return; VT.api("/rest/v1/rpc/vt_puntualia_paquete", { method: "POST", body: {} }).then(r => setPDesc(Number(r) || 0)).catch(() => {}); }, []);
   if (!activo) return h("div", { style: { padding: 16, maxWidth: 560, margin: "0 auto" } }, vtTit("Checador", "Módulo complementario de asistencia"),
     h("div", { style: { ...vtCaja, padding: 18, lineHeight: 1.55, fontSize: 14 } },
       h("div", { style: { fontWeight: 800, fontSize: 16, marginBottom: 6 } }, "📍 Checador con foto, ubicación y kiosco"),
@@ -19744,7 +19764,6 @@ function ChecadorScreen({ ctx, regs, setRegs, esAdmin, cfg: cfgRaw, setCfg: setC
   const setMots = f => setCfg({ ...cfg, motivos: f(mots.slice()) });
   const rolPerm = r => Array.isArray((cfg.rolPerm || {})[r]) ? cfg.rolPerm[r] : (VT_CHK_ROL_DEF[r] || []);
   const togPerm = (r, p) => { const l = rolPerm(r); setCfg({ ...cfg, rolPerm: { ...(cfg.rolPerm || {}), [r]: l.indexOf(p) >= 0 ? l.filter(x => x !== p) : [...l, p] } }); };
-  const [pDesc, setPDesc] = React.useState(0); React.useEffect(() => { if (solo || !esAdmin) return; VT.api("/rest/v1/rpc/vt_puntualia_paquete", { method: "POST", body: {} }).then(r => setPDesc(Number(r) || 0)).catch(() => {}); }, []);
   const promo = !promoOff && esAdmin && h("div", { style: { ...vtCaja, padding: 12, marginBottom: 12, borderColor: COLORS.amber, position: "relative" } },
     h("span", { onClick: () => { setPromoOff(true); try { localStorage.setItem("vt_promo_chk", "1"); } catch (e) {} }, style: { position: "absolute", top: 8, right: 12, cursor: "pointer", color: COLORS.textMuted, fontSize: 16 } }, "✕"),
     solo ? h("div", null, h("div", { style: { fontWeight: 800, marginBottom: 4 } }, "🧾 ¿Tu negocio también vende?"), h("div", { style: { fontSize: 13, lineHeight: 1.5, marginBottom: 8 } }, "Prueba Ventor: punto de venta, inventario, clientes y facturas en tu celular. Usa la misma empresa."), h("a", { href: "https://play.google.com/store/apps/details?id=mx.impulsor.vento", target: "_blank", rel: "noopener", style: { color: COLORS.amberTx, fontWeight: 700, fontSize: 13 } }, "Ver Ventor en Google Play →"))
@@ -23621,6 +23640,9 @@ class VtErrorBoundary extends React.Component {
 }
 ReactDOM.createRoot(document.getElementById("root")).render( /*#__PURE__*/React.createElement(VtErrorBoundary, null, React.createElement(App, null)));
 { const vz = document.createElement("div"); document.body.appendChild(vz); ReactDOM.createRoot(vz).render(React.createElement(VozGlobal, null)); }
+
+(function(){try{var q=0;function fix(){q=0;document.querySelectorAll('input[type=checkbox]:not([aria-label]),button[role=switch]:not([aria-label])').forEach(function(e){if(e.labels&&e.labels.length)return;var r=e.closest('label,li,tr,div[style*="flex"]');var p=r&&r.parentElement;var t=((r&&r.innerText)||(p&&p.innerText)||'').trim().split('\n')[0].slice(0,60);e.setAttribute('aria-label',t||'Activar o desactivar');});}
+new MutationObserver(function(){if(!q){q=1;setTimeout(fix,600);}}).observe(document.documentElement,{childList:true,subtree:true});}catch(e){}})();
 </script>
 <script>if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});</script></body>
 </html>
