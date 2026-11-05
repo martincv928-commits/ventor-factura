@@ -4218,7 +4218,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
       let t = String(cli.telefono || "").replace(/\D/g, ""); if (t.length === 10) t = "52" + t;
       const txt = vtVars(docsCfg.plantillaCot, { cliente: c.cliente, negocio: ctx.empresa.nombre, folio: c.folio || ("#" + c.id), total: money(c.total), fecha: new Date(c.fecha).toLocaleDateString((window.VT_LOC||"es-MX")), vence: new Date(c.vence).toLocaleDateString((window.VT_LOC||"es-MX")), enlace: cotLink(c) });
       return h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 } },
-        h("a", { href: "https://wa.me/" + t + "?text=" + encodeURIComponent(txt), target: "_blank", rel: "noopener", onClick: () => cotMarcarEnviada(c.id), style: { ...bs, background: "#25D366", color: "#fff" } }, e === "enviada" ? "Reenviar por WhatsApp" : "Enviar por WhatsApp"),
+        h("a", { href: "https://wa.me/" + t + "?text=" + encodeURIComponent(txt), target: "_blank", rel: "noopener", onClick: () => cotMarcarEnviada(c.id), style: { ...bs, background: "#128C46", color: "#fff" } }, e === "enviada" ? "Reenviar por WhatsApp" : "Enviar por WhatsApp"),
         h("button", { onClick: () => { const l = cotLink(c); cotMarcarEnviada(c.id); const ok = () => mostrarToast("Enlace copiado"); try { navigator.clipboard.writeText(l).then(ok, () => window.prompt("Copia el enlace:", l)); } catch (x) { window.prompt("Copia el enlace:", l); } }, style: { ...bs, background: "transparent", border: "1px solid " + COLORS.border, color: COLORS.text } }, "Copiar enlace"));
     }
     return info || null;
@@ -4500,7 +4500,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
       display: "flex",
       flexDirection: "column"
     }
-  }, vtFranjaOn(pantalla, ctx) && React.createElement(VtHomePanel, { key: "fr-" + pantalla, gk: "p:" + pantalla, datos: datosAsist(), irA: setPantalla, franja: true }), pantalla === "inicio" && vtMod("inicio_pro") && React.createElement(VtHomePanel, { key: "home-inicio", gk: "inicio", titulo: "Inicio", datos: datosAsist(), irA: setPantalla }), typeof pantalla === "string" && pantalla.indexOf("mh:") === 0 && vtMod("inicio_pro") && React.createElement(VtHomePanel, { key: "home-" + pantalla, gk: pantalla.slice(3), titulo: pantalla.slice(3), datos: datosAsist(), irA: setPantalla }), pantalla === "inicio" && !vtMod("inicio_pro") && (() => {
+  }, vtFranjaOn(pantalla, ctx) && React.createElement(VtHomePanel, { key: "fr-" + pantalla, gk: "p:" + pantalla, datos: datosAsist(), irA: setPantalla, franja: true }), pantalla === "inicio" && vtMod("inicio_pro") && React.createElement(VtGerWrap, { key: "ger-wrap2", ctx, datos: datosAsist(), irA: setPantalla, classic: React.createElement(VtHomePanel, { key: "home-inicio", gk: "inicio", titulo: "Inicio", datos: datosAsist(), irA: setPantalla }) }), typeof pantalla === "string" && pantalla.indexOf("mh:") === 0 && vtMod("inicio_pro") && React.createElement(VtHomePanel, { key: "home-" + pantalla, gk: pantalla.slice(3), titulo: pantalla.slice(3), datos: datosAsist(), irA: setPantalla }), pantalla === "inicio" && !vtMod("inicio_pro") && React.createElement(VtGerWrap, { key: "ger-wrap", ctx, datos: datosAsist(), irA: setPantalla, classic: (() => {
   const stockBajo = productos.filter(vtStockBajo);
   const porCaducar = vtPorCaducar(productos);
   const pedidosNuevos = pedidos.filter(x => x.estado === "nuevo");
@@ -4967,7 +4967,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
     icon: BoxIcon,
     onClick: () => setPantalla("inventario")
   }), React.createElement(TarjetaModulo, { titulo: "\u00D3rdenes de venta", descripcion: "Ventas confirmadas: cobra, factura y da seguimiento.", icon: TruckIcon, onClick: () => setPantalla("mayoreo") }), React.createElement(TarjetaModulo, { titulo: "Contabilidad y facturas", descripcion: "Facturas, cobros, pagos y estados.", icon: WalletIcon, onClick: () => setPantalla("contabilidad") })) }, datos: { ventasHist, ventasMayoreo, compras, gastos, productos, clientes, pedidos, rutas: rutasX }, cfg: biX, setCfg: setBiX, wd: widgetsDashboard, irA: setPantalla, ds: datosAsist() }));
-})(), pantalla === "clientes" && (() => {
+})() }), pantalla === "clientes" && (() => {
   const deudaCli = c => ventasMayoreo.filter(v => v.estado !== "cancelada" && v.saldoPendiente > 0 && (v.clienteId ? v.clienteId === c.id : v.cliente === c.nombre)).reduce((t, v) => t + (Number(v.saldoPendiente) || 0), 0);
   const cliConDeuda = CLIENTES_EJEMPLO.filter(c => deudaCli(c) > 0); const carteraTot = cliConDeuda.reduce((t, c) => t + deudaCli(c), 0);
   const vtTags = c => String(c.etiquetas || "").split(",").map(x => x.trim()).filter(Boolean); const mesHoy = new Date().toISOString().slice(5, 7); const tagsCli = [...new Set(CLIENTES_EJEMPLO.flatMap(vtTags))].sort();
@@ -6432,7 +6432,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
       margin: "0 auto",
       width: "100%"
     }
-  }, React.createElement("button", { onClick: () => setModalCxp(true), style: { width: "100%", marginBottom: 8, padding: "12px", borderRadius: 10, border: "none", background: COLORS.amber, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "\uD83D\uDCE5 Pagos a proveedores (abonos, vencimientos, importar XML)"), React.createElement("button", { onClick: () => setModalCob(true), style: { width: "100%", marginBottom: 14, padding: "12px", borderRadius: 10, border: "none", background: "#25D366", color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "\uD83D\uDCF2 Cobranza por WhatsApp (recordatorios y estado de cuenta)"), /*#__PURE__*/React.createElement("h2", {
+  }, React.createElement("button", { onClick: () => setModalCxp(true), style: { width: "100%", marginBottom: 8, padding: "12px", borderRadius: 10, border: "none", background: COLORS.amber, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "\uD83D\uDCE5 Pagos a proveedores (abonos, vencimientos, importar XML)"), React.createElement("button", { onClick: () => setModalCob(true), style: { width: "100%", marginBottom: 14, padding: "12px", borderRadius: 10, border: "none", background: "#128C46", color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "\uD83D\uDCF2 Cobranza por WhatsApp (recordatorios y estado de cuenta)"), /*#__PURE__*/React.createElement("h2", {
     style: {
       fontSize: 19,
       fontWeight: 700,
@@ -8045,7 +8045,7 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
   }, /*#__PURE__*/React.createElement("div", { style: { position: "relative" } }, /*#__PURE__*/React.createElement(ResumenCaja, {
     label: "Caja inicial",
     valor: turno.montoInicial
-  }), !ciego && !((turno.movs || []).length) && /*#__PURE__*/React.createElement("button", { onClick: () => { const v = prompt("Corregir la caja inicial ($):", String(turno.montoInicial || 0)); if (v === null) return; const n = parseFloat(v); if (isNaN(n) || n < 0) return; setTurno({ ...turno, montoInicial: n }); }, style: { position: "absolute", bottom: 10, right: 10, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, borderRadius: 8, padding: "3px 9px", fontSize: 12, cursor: "pointer" } }, "✎ Corregir")), !ciego && /*#__PURE__*/React.createElement(ResumenCaja, {
+  }), !ciego && !((turno.movs || []).length) && /*#__PURE__*/React.createElement("button", { onClick: () => { const v = prompt("Corregir la caja inicial ($):", String(turno.montoInicial || 0)); if (v === null) return; const n = parseFloat(v); if (isNaN(n) || n < 0) return; setTurno({ ...turno, montoInicial: n }); }, style: { position: "absolute", bottom: 10, right: 10, border: "1px solid " + COLORS.border, background: "transparent", color: COLORS.text, borderRadius: 8, padding: "9px 12px", minHeight: 38, fontSize: 12, cursor: "pointer" } }, "✎ Corregir")), !ciego && /*#__PURE__*/React.createElement(ResumenCaja, {
     label: "Ventas del turno",
     valor: totalVentasTurno,
     destacado: true
@@ -8104,8 +8104,8 @@ function ImpulsorVentoDemo({ ctx: ctxReal, onSalir }) {
       fontSize: 15,
       fontWeight: 700,
       cursor: "pointer",
-      background: COLORS.red,
-      color: COLORS.text
+      background: "#DC2626",
+      color: "#fff"
     }
   }, "Cerrar turno")), turnoCerrado && !turno && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8698,7 +8698,7 @@ function VtUsuarios({ usuarios, empresaId, maxUsuarios, meId, onCambio }) {
   const h = React.createElement;
   const [nuevo, setNuevo] = React.useState(null);
   const [reset, setReset] = React.useState(null);
-  const [editU, setEditU] = React.useState(null); const [editPerm, setEditPerm] = React.useState(null); const [matriz, setMatriz] = React.useState(false);
+  const [editU, setEditU] = React.useState(null); const [editPerm, setEditPerm] = React.useState(null); const [matriz, setMatriz] = React.useState(false); const [gerM, setGerM] = React.useState(false);
   const [cambiarU, setCambiarU] = React.useState(null);
   const [msg, setMsg] = React.useState("");
   const [ocupado, setOcupado] = React.useState(false);
@@ -8710,7 +8710,7 @@ function VtUsuarios({ usuarios, empresaId, maxUsuarios, meId, onCambio }) {
       h("div", { style: { fontWeight: 700 } }, "Usuarios (" + usuarios.length + (maxUsuarios != null ? " de " + maxUsuarios : "") + ")"),
       vtBtn("+ Usuario", () => setNuevo({ rol: "cajero", password: vtClave(), permisos: vtPermisoInicial() }), "x", lleno)),
     msg && h("div", { style: { fontSize: 12.5, margin: "0 0 10px", color: msg.startsWith("⚠") ? COLORS.red : COLORS.green } }, msg),
-    h("div", { style: { marginBottom: 8 } }, vtBtn("🔐 Matriz: quién puede qué", () => setMatriz(true), "x")),
+    h("div", { style: { marginBottom: 8, display: "flex", gap: 8, flexWrap: "wrap" } }, vtBtn("🔐 Matriz: quién puede qué", () => setMatriz(true), "x"), vtBtn("📊 Inicio gerencial por usuario", () => setGerM(true), "x")),
     usuarios.map(u => h("div", { key: u.id, style: { ...vtCaja, marginBottom: 8, padding: 12 } },
       h("div", { style: { display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" } },
         h("div", { style: { minWidth: 0 } }, h("strong", null, u.nombre || u.usuario), h("div", { style: { fontSize: 12, color: COLORS.textMuted } }, "usuario: " + u.usuario + " · " + (u.rol === "admin" ? "administrador" : (u.permisos && VT_PERFILES[u.permisos.perfil] ? VT_PERFILES[u.permisos.perfil][0] : "acceso básico")))),
@@ -8740,6 +8740,7 @@ function VtUsuarios({ usuarios, empresaId, maxUsuarios, meId, onCambio }) {
       h("div", { style: { fontSize: 12, color: COLORS.textMuted, marginBottom: 12 } }, editU.propio ? "Tu propio rol no se puede cambiar aquí." : "Administrador ve todo e ignora los permisos. Al pasar a Usuario, ajusta sus permisos con el botón Permisos. Debe quedar al menos un administrador activo. Los cambios se aplican cuando esa persona vuelva a abrir la app."),
       vtBtn(ocupado ? "Guardando…" : "Guardar", () => ejecutar(async () => { await vtAdmin("editar_usuario", { usuario_id: editU.id, nombre: editU.nombre, ...(editU.propio ? {} : { rol: editU.rol }) }); setEditU(null); }, "Usuario actualizado"), "p", ocupado || editU.nombre.trim().length < 2)),
     matriz && h(VtMatrizPermisos, { usuarios, onCerrar: () => setMatriz(false) }),
+    gerM && h(VtGerConfig, { ctx: { empresa: { id: empresaId }, rol: "admin" }, onCerrar: () => setGerM(false) }),
     editPerm && h(VtHoja, { titulo: "Permisos · " + editPerm.nombre, onCerrar: () => setEditPerm(null) },
       h(VtPermisos, { valor: editPerm.p, onChange: p => setEditPerm({ ...editPerm, p }) }),
       h("div", { style: { fontSize: 12, color: COLORS.textMuted, marginBottom: 12 } }, "Inicio y Soporte siempre están disponibles. Los cambios se aplican la próxima vez que esa persona abra la app."),
@@ -8814,7 +8815,7 @@ function PantallaSoporte({ ctx }) {
   return h("div", { className: "dash-wrap", style: { padding: "28px 24px", maxWidth: 760, margin: "0 auto", width: "100%" } },
     h("h1", { style: { fontSize: 22, fontWeight: 700, margin: "0 0 4px", fontFamily: COLORS.fontDisplay } }, "Soporte"),
     h("p", { style: { color: COLORS.textMuted, fontSize: 13, margin: "0 0 14px" } }, "¿Algo no funciona o necesitas ayuda? Cuéntanos."),
-    VT_WA_SOPORTE && h("a", { href: "https://wa.me/" + VT_WA_SOPORTE + "?text=" + encodeURIComponent("Hola, soy de " + ctx.empresa.nombre + " y necesito ayuda con Ventor: "), target: "_blank", rel: "noopener", style: { display: "block", textAlign: "center", textDecoration: "none", marginBottom: 12, padding: 12, borderRadius: 10, background: "#25D366", color: "#fff", fontWeight: 700 } }, "\uD83D\uDCAC Escríbenos por WhatsApp"),
+    VT_WA_SOPORTE && h("a", { href: "https://wa.me/" + VT_WA_SOPORTE + "?text=" + encodeURIComponent("Hola, soy de " + ctx.empresa.nombre + " y necesito ayuda con Ventor: "), target: "_blank", rel: "noopener", style: { display: "block", textAlign: "center", textDecoration: "none", marginBottom: 12, padding: 12, borderRadius: 10, background: "#128C46", color: "#fff", fontWeight: 700 } }, "\uD83D\uDCAC Escríbenos por WhatsApp"),
     h(VtAyuda, null),
     h("div", { style: vtCaja },
       h("input", { placeholder: "Asunto", value: f.asunto, onChange: e => setF({ ...f, asunto: e.target.value }), style: { ...pvInput, marginBottom: 8 } }),
@@ -10628,7 +10629,7 @@ function ArqueoDenom({ onTotal }) {
   const h = React.createElement; const [ab, setAb] = React.useState(false); const [c, setC] = React.useState({});
   const den = [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1, 0.5];
   const tot = Math.round(den.reduce((a, d) => a + d * (parseInt(c[d]) || 0), 0) * 100) / 100;
-  if (!ab) return h("button", { onClick: () => setAb(true), style: { background: "none", border: "none", color: COLORS.amberTx, fontSize: 12.5, cursor: "pointer", padding: 0, marginBottom: 8 } }, "🧮 Contar por billetes y monedas");
+  if (!ab) return h("button", { onClick: () => setAb(true), style: { background: "none", border: "none", color: COLORS.amberTx, fontSize: 12.5, cursor: "pointer", padding: "10px 4px", minHeight: 40, marginBottom: 4 } }, "🧮 Contar por billetes y monedas");
   return h("div", { style: { border: "1px solid " + COLORS.border, borderRadius: 10, padding: 10, marginBottom: 10 } },
     h("div", { style: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 6 } }, den.map(d => h("label", { key: d, style: { display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 } }, h("span", { style: { width: 52, textAlign: "right", color: COLORS.textMuted } }, "$" + d), "×", h("input", { type: "number", inputMode: "numeric", value: c[d] || "", onChange: e => { const n = { ...c, [d]: e.target.value }; setC(n); onTotal(Math.round(den.reduce((a, x) => a + x * (parseInt(n[x]) || 0), 0) * 100) / 100); }, style: { ...inputStyle, width: "100%", padding: "6px 8px" } })))),
     h("div", { style: { display: "flex", justifyContent: "space-between", fontWeight: 700, marginTop: 8 } }, h("span", null, "Total contado"), h("span", null, money(tot))));
@@ -12460,7 +12461,7 @@ function CreditoScreen({ ctx, clientes, setClientes, ventas, liberaciones, setLi
         x.ev.limite > 0 && h("div", { style: { height: 6, borderRadius: 4, background: COLORS.card, margin: "8px 0", overflow: "hidden" } }, h("div", { style: { width: Math.min(100, 100 * x.ev.deuda / x.ev.limite) + "%", height: "100%", background: x.ev.deuda > x.ev.limite ? COLORS.red : x.ev.deuda > x.ev.limite * 0.8 ? COLORS.amber : COLORS.green } })),
         h("div", { style: { display: "grid", gridTemplateColumns: "repeat(5, minmax(0,1fr))", gap: 4, fontSize: 11.5, marginTop: 6 } }, [["Por vencer", x.b.porVencer], ["1-30", x.b.d30], ["31-60", x.b.d60], ["61-90", x.b.d90], ["+90", x.b.mas]].map(([t, v]) => h("div", { key: t }, h("div", { style: { color: COLORS.textMuted } }, t), h("div", { style: { fontWeight: 700, color: v > 0 && t !== "Por vencer" ? COLORS.red : undefined } }, v > 0 ? money(v) : "—")))),
         h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 } },
-          tel(x.c) && x.ev.deuda > 0 && h("a", { href: "https://wa.me/" + tel(x.c) + "?text=" + encodeURIComponent("Hola " + x.c.nombre + ", te recordamos que tu saldo con " + empresa + " es de " + money(x.ev.deuda) + (x.ev.vencidas.length ? ", con " + money(x.ev.vencidas.reduce((a, v) => a + v.saldo, 0)) + " vencido" : "") + ". ¡Gracias!"), target: "_blank", rel: "noopener", style: { padding: "6px 10px", borderRadius: 8, background: "#25D366", color: "#fff", fontSize: 12.5, fontWeight: 600, textDecoration: "none" } }, "WhatsApp cobranza"),
+          tel(x.c) && x.ev.deuda > 0 && h("a", { href: "https://wa.me/" + tel(x.c) + "?text=" + encodeURIComponent("Hola " + x.c.nombre + ", te recordamos que tu saldo con " + empresa + " es de " + money(x.ev.deuda) + (x.ev.vencidas.length ? ", con " + money(x.ev.vencidas.reduce((a, v) => a + v.saldo, 0)) + " vencido" : "") + ". ¡Gracias!"), target: "_blank", rel: "noopener", style: { padding: "6px 10px", borderRadius: 8, background: "#128C46", color: "#fff", fontSize: 12.5, fontWeight: 600, textDecoration: "none" } }, "WhatsApp cobranza"),
           puedeLib && x.bloq && !x.ev.liberado && vtBtn("🔓 Liberar por un tiempo", () => setLibCli(x.c)),
           puedeLib && x.ev.liberado && vtBtn("Quitar liberación", () => { setClientes(prev => prev.map(c => c.id === x.c.id ? { ...c, credLib: null } : c)); setLiberaciones(prev => [...(prev || []), { id: "lb" + Date.now().toString(36), fecha: new Date().toISOString(), tipo: "fin", cliente: x.c.nombre, clienteId: x.c.id, usuario: ctx.nombre || ctx.usuario, nota: "Liberación retirada antes de tiempo" }]); }))))),
     tab === "hist" && h("div", null,
@@ -18720,6 +18721,209 @@ function vtGuiaLocal(t, D) {
   if (!partes.length) return null;
   return { t: partes.join("\n\n") + "\n\n(Respuesta sin costo)", acc };
 }
+// ===== Inicio gerencial: vista ejecutiva opcional, por usuario =====
+const VT_GER_KPIS = [["ventas", "Ventas", "💰"], ["utilidad", "Utilidad bruta", "📈"], ["gastos", "Gastos", "🧾"], ["resultado", "Resultado estimado", "🏁"], ["margen", "Margen", "％"], ["ticket", "Ticket promedio", "🎫"], ["cobrar", "Por cobrar", "📥"], ["pagar", "Por pagar", "📤"], ["inv", "Valor del inventario", "📦"]];
+const VT_GER_PERS = [["hoy", "Hoy"], ["sem", "7 días"], ["mes", "Este mes"], ["mespas", "Mes pasado"], ["anio", "Año"]];
+const VT_GER_DEF = { activa: true, defecto: "operativo", periodo: "mes", kpis: ["ventas", "utilidad", "gastos", "cobrar", "pagar", "inv"], usuarios: {} };
+const VT_GER_COSTO = new Set(["utilidad", "resultado", "margen", "inv"]);
+function vtGerKey(ctx) { return "vt_gercfg_" + ((ctx && ctx.empresa && ctx.empresa.id) || "x"); }
+function vtGerMerge(j) { return { ...VT_GER_DEF, ...(j || {}), kpis: Array.isArray(j && j.kpis) && j.kpis.length ? j.kpis : VT_GER_DEF.kpis.slice(), usuarios: { ...((j && j.usuarios) || {}) } }; }
+function vtGerCfgLeer(ctx) { try { return vtGerMerge(JSON.parse(localStorage.getItem(vtGerKey(ctx)) || "null")); } catch (e) { return vtGerMerge(null); } }
+async function vtGerCfgNube(ctx) { const d = await vtHomeNube(ctx, "ger_cfg"); if (d) { try { localStorage.setItem(vtGerKey(ctx), JSON.stringify(d)); } catch (e) {} } return d; }
+function vtGerCfgEscribir(ctx, cfg) { try { localStorage.setItem(vtGerKey(ctx), JSON.stringify(cfg)); } catch (e) {} try { window.dispatchEvent(new Event("vt-ger")); } catch (e) {} return vtCfgGuardar(ctx, "ger_cfg", cfg); }
+function vtGerUid(ctx) { return String((ctx && (ctx.usuario || ctx.nombre)) || "u"); }
+function vtGerPerm(ctx, cfg) {
+  const no = { acceso: false, cambiar: false, vista: "operativo" };
+  if (!ctx || !cfg.activa) return no;
+  const u = (cfg.usuarios || {})[vtGerUid(ctx)] || {};
+  const acceso = ctx.rol === "admin" ? u.acceso !== false : u.acceso === true;
+  if (!acceso) return no;
+  return { acceso: true, cambiar: u.cambiar !== false, vista: u.vista || cfg.defecto || "operativo" };
+}
+function vtGerRango(per) {
+  const hoy = new Date(); hoy.setHours(12, 0, 0, 0); const add = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const Y = hoy.getFullYear(), M = hoy.getMonth(); let a, b, pa, pb;
+  if (per === "hoy") { a = b = hoy; } else if (per === "sem") { a = add(hoy, -6); b = hoy; } else if (per === "mes") { a = new Date(Y, M, 1, 12); b = hoy; } else if (per === "mespas") { a = new Date(Y, M - 1, 1, 12); b = new Date(Y, M, 0, 12); } else { a = new Date(Y, 0, 1, 12); b = hoy; }
+  const n = Math.round((b - a) / 864e5) + 1;
+  if (per === "mes") { pa = new Date(Y, M - 1, 1, 12); pb = add(pa, n - 1); const fin = new Date(Y, M, 0, 12); if (pb > fin) pb = fin; } else if (per === "mespas") { pa = new Date(Y, M - 2, 1, 12); pb = new Date(Y, M - 1, 0, 12); } else if (per === "anio") { pa = new Date(Y - 1, 0, 1, 12); pb = new Date(Y - 1, M, hoy.getDate(), 12); } else { pb = add(a, -1); pa = add(pb, -(n - 1)); }
+  return { a: vtDia(a), b: vtDia(b), pa: vtDia(pa), pb: vtDia(pb), n, mensual: per === "anio" };
+}
+function vtGerSerie(rows, key, a, b, mensual) {
+  const claves = []; const d = new Date(a + "T12:00:00"); const fin = new Date(b + "T12:00:00");
+  while (d <= fin) { claves.push(mensual ? vtDia(d).slice(0, 7) : vtDia(d)); if (mensual) { d.setMonth(d.getMonth() + 1, 1); } else d.setDate(d.getDate() + 1); if (claves.length > 400) break; }
+  const m = {}; claves.forEach(k => { m[k] = 0; });
+  rows.forEach(r => { if (r.fecha < a || r.fecha > b) return; const k = mensual ? r.fecha.slice(0, 7) : r.fecha; if (k in m) m[k] += Number(r[key]) || 0; });
+  return claves.map(k => m[k]);
+}
+function vtGerCalc(datos, per) {
+  const F = vtFuentes(datos); const R = vtGerRango(per); const V = F.ventas.filas, G = F.gastos.filas, P = F.productos.filas, PT = F.partidas.filas;
+  const en = (f, a, b) => f >= a && f <= b; const sum = (rows, k, a, b) => rows.reduce((s, x) => en(x.fecha, a, b) ? s + (Number(x[k]) || 0) : s, 0);
+  const r2 = x => Math.round(x * 100) / 100;
+  const cur = { ventas: sum(V, "total", R.a, R.b), costo: sum(V, "costo", R.a, R.b), gastos: sum(G, "monto", R.a, R.b), n: V.filter(x => en(x.fecha, R.a, R.b)).length };
+  const prv = { ventas: sum(V, "total", R.pa, R.pb), costo: sum(V, "costo", R.pa, R.pb), gastos: sum(G, "monto", R.pa, R.pb), n: V.filter(x => en(x.fecha, R.pa, R.pb)).length };
+  [cur, prv].forEach(o => { o.utilidad = r2(o.ventas - o.costo); o.resultado = r2(o.utilidad - o.gastos); o.margen = o.ventas > 0 ? o.utilidad / o.ventas * 100 : 0; o.ticket = o.n ? o.ventas / o.n : 0; });
+  const hoyD = new Date(); const mm = vtDia(hoyD).slice(0, 7);
+  const meses = []; for (let i = 5; i >= 0; i--) { const d = new Date(hoyD.getFullYear(), hoyD.getMonth() - i, 1, 12); const k = vtDia(d).slice(0, 7); meses.push({ k, t: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][d.getMonth()], v: 0, g: 0, c: 0 }); }
+  V.forEach(x => { const m = meses.find(z => z.k === x.mes); if (m) { m.v += Number(x.total) || 0; m.c += Number(x.costo) || 0; } }); G.forEach(x => { const m = meses.find(z => z.k === x.mes); if (m) m.g += Number(x.monto) || 0; });
+  const grp = (rows, kf, vf, a, b) => { const o = {}; rows.forEach(r => { if (!en(r.fecha, a, b)) return; const k = kf(r) || "Sin dato"; o[k] = (o[k] || 0) + (Number(vf(r)) || 0); }); return Object.entries(o).map(([k, v]) => ({ k, v })).filter(x => x.v > 0).sort((p, q) => q.v - p.v); };
+  const cats = grp(G, r => r.categoria || r.descripcion, r => r.monto, R.a, R.b);
+  const canales = grp(V, r => r.origen, r => r.total, R.a, R.b);
+  const prods = grp(PT, r => r.producto, r => r.importe, R.a, R.b);
+  const clis = grp(V, r => r.cliente, r => r.total, R.a, R.b).filter(x => x.k !== "Público en general");
+  const agot = P.filter(p => p.activo === "Sí" && p.estadoStock === "Agotado"), bajo = P.filter(p => p.activo === "Sí" && p.estadoStock === "Stock bajo");
+  const ahora = new Date(); const mayo = (datos.ventasMayoreo || []).filter(v => Number(v.saldoPendiente) > 0.009 && v.estado !== "cancelada");
+  const cobrar = mayo.reduce((s, v) => s + Number(v.saldoPendiente), 0); const venc = mayo.filter(v => v.fechaVencimiento && new Date(v.fechaVencimiento) < ahora);
+  const cp = (datos.compras || []).filter(c => c.pagoEstado === "pendiente" && Number(c.saldoPendientePago) > 0); const pagar = cp.reduce((s, c) => s + Number(c.saldoPendientePago), 0);
+  const porRecibir = (datos.compras || []).filter(c => c.estado === "pendiente").length;
+  const inv = P.filter(p => p.activo === "Sí").reduce((s, p) => s + (Number(p.valorInv) || 0), 0);
+  const ser = { ventas: vtGerSerie(V, "total", R.a, R.b, R.mensual), gastos: vtGerSerie(G, "monto", R.a, R.b, R.mensual), utilidad: vtGerSerie(V, "utilidad", R.a, R.b, R.mensual) };
+  ser.resultado = ser.utilidad.map((u, i) => u - (ser.gastos[i] || 0));
+  return { R, cur, prv, meses, cats, canales, prods, clis, agot, bajo, cobrar, venc, nVenc: venc.length, vencMonto: venc.reduce((s, v) => s + Number(v.saldoPendiente), 0), pagar, porRecibir, inv, ser, hayVentas: V.length > 0, mm };
+}
+const vtGerK = (v, dec) => { v = Number(v) || 0; const a = Math.abs(v); if (a >= 1e6) return "$" + (v / 1e6).toFixed(2).replace(/\.?0+$/, "") + " M"; if (a >= 1e4) return "$" + (v / 1e3).toFixed(1).replace(/\.0$/, "") + " mil"; return "$" + v.toLocaleString("es-MX", { minimumFractionDigits: dec ? 2 : 0, maximumFractionDigits: dec ? 2 : 0 }); };
+function VtGerSpark({ pts, color }) {
+  const h = React.createElement; const n = pts.length; if (n < 2 || Math.max(...pts) <= 0 && Math.min(...pts) >= 0) return h("div", { style: { height: 26 } });
+  const mx = Math.max(...pts), mn = Math.min(...pts, 0), rg = (mx - mn) || 1; const X = i => (i / (n - 1)) * 100, Y = v => 26 - ((v - mn) / rg) * 22 - 2;
+  const d = pts.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+  return h("svg", { viewBox: "0 0 100 26", preserveAspectRatio: "none", style: { width: "100%", height: 26, display: "block" }, "aria-hidden": "true" }, h("path", { d: d + " L100 26 L0 26 Z", fill: color, opacity: 0.14 }), h("path", { d, fill: "none", stroke: color, strokeWidth: 1.6, vectorEffect: "non-scaling-stroke", strokeLinejoin: "round" }));
+}
+function VtGerBarras({ meses, ver }) {
+  const h = React.createElement; const W = 320, H = 150, pad = 22, bw = 12; const mx = Math.max(1, ...meses.map(m => Math.max(m.v, m.g))); const paso = (W - 10) / meses.length;
+  return h("svg", { viewBox: "0 0 " + W + " " + H, style: { width: "100%", height: "auto", display: "block" }, role: "img", "aria-label": "Ventas contra gastos de los últimos 6 meses" },
+    [0, 0.5, 1].map(f => h("line", { key: "l" + f, x1: 4, x2: W - 4, y1: H - pad - f * (H - pad - 8), y2: H - pad - f * (H - pad - 8), stroke: COLORS.border, strokeWidth: 0.6 })),
+    meses.map((m, i) => { const x = 8 + i * paso + paso / 2, hv = (m.v / mx) * (H - pad - 8), hg = (m.g / mx) * (H - pad - 8); return h("g", { key: m.k }, h("rect", { x: x - bw - 1, y: H - pad - hv, width: bw, height: Math.max(0, hv), rx: 3, fill: COLORS.green }), h("rect", { x: x + 1, y: H - pad - hg, width: bw, height: Math.max(0, hg), rx: 3, fill: "#F59E0B" }), h("text", { x, y: H - 6, textAnchor: "middle", fontSize: 9.5, fill: COLORS.textMuted }, m.t)); }),
+    ver && h("polyline", { fill: "none", stroke: "#60A5FA", strokeWidth: 1.6, points: meses.map((m, i) => { const u = Math.max(0, m.v - m.c - m.g); return (8 + i * paso + paso / 2).toFixed(1) + "," + (H - pad - (u / mx) * (H - pad - 8)).toFixed(1); }).join(" ") }));
+}
+const VT_GER_PAL = ["#2ee26f", "#60A5FA", "#F59E0B", "#A78BFA", "#F472B6", "#94A3B8"];
+function VtGerDona({ datos, total }) {
+  const h = React.createElement; const r = 36, c = 2 * Math.PI * r; let off = 0;
+  const top = datos.slice(0, 5); const resto = datos.slice(5).reduce((s, x) => s + x.v, 0); const L = resto > 0 ? top.concat([{ k: "Otros", v: resto }]) : top;
+  return h("div", { style: { display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" } },
+    h("svg", { viewBox: "0 0 100 100", style: { width: 120, height: 120, flexShrink: 0 }, role: "img", "aria-label": "Gastos por categoría" }, h("g", { transform: "rotate(-90 50 50)" }, L.map((x, i) => { const len = x.v / total * c; const el = h("circle", { key: x.k, cx: 50, cy: 50, r, fill: "none", stroke: VT_GER_PAL[i % 6], strokeWidth: 14, strokeDasharray: len + " " + (c - len), strokeDashoffset: -off }); off += len; return el; })), h("text", { x: 50, y: 53, textAnchor: "middle", fontSize: 11, fontWeight: 700, fill: COLORS.text }, vtGerK(total))),
+    h("div", { style: { flex: 1, minWidth: 130, display: "grid", gap: 5 } }, L.map((x, i) => h("div", { key: x.k, style: { display: "flex", alignItems: "center", gap: 7, fontSize: 12.5 } }, h("span", { style: { width: 9, height: 9, borderRadius: 3, background: VT_GER_PAL[i % 6], flexShrink: 0 } }), h("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, x.k), h("span", { style: { color: COLORS.textMuted } }, Math.round(x.v / total * 100) + "%")))));
+}
+const VT_GER_CSS = ".vg{container-type:inline-size;width:100%}.vg-k{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}.vg-g{display:grid;gap:12px;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:12px}.vg-g>*{grid-column:span 6}.vg-g>.vg-f{grid-column:1/-1}.vg-chip:focus-visible,.vg button:focus-visible{outline:2px solid #2ee26f;outline-offset:2px}@container (min-width:560px){.vg-k{grid-template-columns:repeat(3,minmax(0,1fr))}.vg-g>.vg-s{grid-column:span 3}.vg-g>.vg-t{grid-column:span 3}}@container (min-width:900px){.vg-k{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.vg-g>.vg-w{grid-column:1/5;grid-row:1}.vg-g>.vg-ai{grid-column:5/7;grid-row:1/3}.vg-g>.vg-s{grid-column:span 2}.vg-g>.vg-t{grid-column:span 2}.vg-g>.vg-b{grid-column:span 2}}@container (min-width:1200px){.vg .vg-big{font-size:26px}}";
+function VtGerTendencia({ ser, R, ver, mensual }) {
+  const h = React.createElement; const n = ser.ventas.length; const W = 640, H = 210, pl = 40, pr = 10, pt = 12, pb = 26;
+  const mx = Math.max(1, ...ser.ventas, ...ser.gastos); const nice = (() => { const p = Math.pow(10, Math.floor(Math.log10(mx))); const f = mx / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; })();
+  if (n < 2) return h("div", { style: { padding: "26px 8px", textAlign: "center" } }, h("div", { style: { fontSize: 30, fontWeight: 800 } }, vtGerK(ser.ventas[0] || 0)), h("div", { style: { fontSize: 12.5, color: COLORS.textMuted } }, "vendido en el día · elige «7 días» o «Este mes» para ver la tendencia"));
+  const X = i => pl + (i / (n - 1)) * (W - pl - pr), Y = v => H - pb - (v / nice) * (H - pb - pt);
+  const path = a => a.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+  const fmtF = i => { const d = new Date(R.a + "T12:00:00"); if (mensual) { d.setMonth(d.getMonth() + i); return ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][d.getMonth()]; } d.setDate(d.getDate() + i); return d.getDate() + "/" + (d.getMonth() + 1); };
+  const marks = n <= 8 ? Array.from({ length: n }, (_, i) => i) : [0, Math.round((n - 1) / 4), Math.round((n - 1) / 2), Math.round(3 * (n - 1) / 4), n - 1];
+  const res = ser.resultado;
+  return h("svg", { viewBox: "0 0 " + W + " " + H, style: { width: "100%", height: "auto", display: "block" }, role: "img", "aria-label": "Tendencia de ventas y gastos del periodo" },
+    h("defs", null, h("linearGradient", { id: "vgA", x1: 0, y1: 0, x2: 0, y2: 1 }, h("stop", { offset: "0%", stopColor: "#2ee26f", stopOpacity: 0.38 }), h("stop", { offset: "100%", stopColor: "#2ee26f", stopOpacity: 0 }))),
+    [0, 0.25, 0.5, 0.75, 1].map(f => h("g", { key: "g" + f }, h("line", { x1: pl, x2: W - pr, y1: Y(nice * f), y2: Y(nice * f), stroke: COLORS.border, strokeWidth: 0.7, strokeDasharray: f ? "3 4" : "" }), h("text", { x: pl - 6, y: Y(nice * f) + 3.5, textAnchor: "end", fontSize: 10, fill: COLORS.textMuted }, f ? vtGerK(nice * f).replace("$", "") : "0"))),
+    h("path", { d: path(ser.ventas) + " L" + X(n - 1) + " " + Y(0) + " L" + X(0) + " " + Y(0) + " Z", fill: "url(#vgA)" }),
+    h("path", { d: path(ser.ventas), fill: "none", stroke: "#2ee26f", strokeWidth: 2.4, strokeLinejoin: "round", strokeLinecap: "round" }),
+    h("path", { d: path(ser.gastos), fill: "none", stroke: "#F59E0B", strokeWidth: 2, strokeLinejoin: "round", strokeDasharray: "5 4" }),
+    ver && h("path", { d: path(res.map(v => Math.max(0, v))), fill: "none", stroke: "#60A5FA", strokeWidth: 1.8, strokeLinejoin: "round" }),
+    h("circle", { cx: X(n - 1), cy: Y(ser.ventas[n - 1]), r: 4, fill: "#2ee26f", stroke: COLORS.card, strokeWidth: 2 }),
+    marks.map(i => h("text", { key: "m" + i, x: X(i), y: H - 7, textAnchor: i === 0 ? "start" : i === n - 1 ? "end" : "middle", fontSize: 10.5, fill: COLORS.textMuted }, fmtF(i))));
+}
+function VtGerencial({ ctx, datos, irA, cfg, onConf }) {
+  const h = React.createElement; const ver = vtPermitida(ctx, "vercostos"); const adm = ctx.rol === "admin";
+  const [per, setPer] = React.useState(cfg.periodo || "mes");
+  const D = React.useMemo(() => { try { return vtGerCalc(datos, per); } catch (e) { return null; } }, [datos.ventasHist, datos.ventasMayoreo, datos.ventasTodosPv, datos.compras, datos.gastos, datos.productos, datos.clientes, per]);
+  const card = { background: COLORS.card, border: "1px solid " + COLORS.border, borderRadius: 16, padding: 16, minWidth: 0 };
+  const tit = (t, s, ic) => h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 12 } }, h("div", { style: { fontWeight: 700, fontSize: 14.5 } }, (ic ? ic + " " : "") + t), s && h("div", { style: { fontSize: 11.5, color: COLORS.textMuted, textAlign: "right" } }, s));
+  if (!D) return h("div", { style: { ...card, margin: 16 } }, "No pude armar el panel con los datos actuales. Cambia a la vista Operativa y avísanos en Soporte.");
+  const { cur, prv } = D; const periodoLbl = (VT_GER_PERS.find(x => x[0] === per) || [0, ""])[1]; const prevLbl = per === "hoy" ? "ayer" : per === "anio" ? "año pasado" : per === "mes" ? "mes pasado" : "periodo anterior";
+  const val = k => k === "cobrar" ? D.cobrar : k === "pagar" ? D.pagar : k === "inv" ? D.inv : cur[k];
+  const prevVal = k => (k === "cobrar" || k === "pagar" || k === "inv") ? null : prv[k];
+  const dest = { ventas: "reportes", utilidad: "reportes", gastos: "gastos", resultado: "reportes", margen: "reportes", ticket: "reportes", cobrar: "cxcp", pagar: "cxcp", inv: "inventario" };
+  const kpis = (cfg.kpis || VT_GER_DEF.kpis).filter(k => (ver || !VT_GER_COSTO.has(k)) && VT_GER_KPIS.some(z => z[0] === k)).slice(0, 9);
+  const tono = { ventas: "#2ee26f", utilidad: "#2ee26f", resultado: "#60A5FA", margen: "#A78BFA", ticket: "#A78BFA", gastos: "#F59E0B", pagar: "#F59E0B", cobrar: "#60A5FA", inv: "#94A3B8" };
+  const kCard = k => {
+    const meta = VT_GER_KPIS.find(z => z[0] === k); const v = val(k); const pv = prevVal(k); const inv = k === "gastos" || k === "pagar";
+    const dl = pv != null && pv > 0 ? (v - pv) / pv * 100 : null; const bueno = dl == null ? null : (inv ? dl <= 0 : dl >= 0); const col = tono[k] || COLORS.green;
+    const txt = k === "margen" ? v.toFixed(1) + "%" : vtGerK(v, k === "ticket");
+    const extra = k === "cobrar" && D.nVenc ? D.nVenc + " vencida" + (D.nVenc > 1 ? "s" : "") + " · " + vtGerK(D.vencMonto) : k === "pagar" && D.porRecibir ? D.porRecibir + " compra" + (D.porRecibir > 1 ? "s" : "") + " por recibir" : k === "inv" ? "valuado al costo" : k === "ticket" ? cur.n + " venta" + (cur.n === 1 ? "" : "s") : k === "cobrar" || k === "pagar" ? "saldo pendiente" : null;
+    return h("button", { key: k, onClick: () => irA(dest[k] || "reportes"), style: { ...card, padding: 14, textAlign: "left", cursor: "pointer", color: COLORS.text, display: "flex", flexDirection: "column", gap: 3, width: "100%", font: "inherit", borderTop: "3px solid " + col } },
+      h("div", { style: { display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: COLORS.textMuted } }, h("span", { style: { width: 24, height: 24, borderRadius: 8, background: col + "26", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 } }, meta[2]), meta[1]),
+      h("div", { className: "vg-big", style: { fontSize: 23, fontWeight: 800, letterSpacing: "-.4px", fontFamily: COLORS.fontDisplay, marginTop: 4 } }, txt),
+      dl != null ? h("div", { style: { display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: (bueno ? "#2ee26f" : "#ef4444") + "22", color: bueno ? "#2ee26f" : "#f87171" } }, (dl >= 0 ? "▲ " : "▼ ") + Math.abs(dl).toFixed(0) + "%") : h("div", { style: { fontSize: 11.5, color: COLORS.textMuted, minHeight: 20 } }, extra || ""), dl != null ? h("div", { style: { fontSize: 11, color: COLORS.textMuted, marginTop: -1 } }, "vs " + prevLbl) : null,
+      D.ser[k] ? h(VtGerSpark, { pts: D.ser[k], color: col }) : h("div", { style: { height: 26 } }));
+  };
+  const lista = (arr, n, fmt, col) => { const mx = arr.length ? arr[0].v : 1; return h("div", { style: { display: "grid", gap: 10 } }, arr.slice(0, n).map((x, i) => h("div", { key: x.k }, h("div", { style: { display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 4 } }, h("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, h("b", { style: { color: COLORS.textMuted, marginRight: 6 } }, i + 1), x.k), h("b", null, fmt(x.v))), h("div", { style: { height: 6, borderRadius: 4, background: COLORS.border } }, h("div", { style: { width: Math.max(3, x.v / mx * 100) + "%", height: 6, borderRadius: 4, background: col || COLORS.green } })))), arr.length === 0 && h("div", { style: { fontSize: 12.5, color: COLORS.textMuted } }, "Sin datos en este periodo.")); };
+  const H = [];
+  if (prv.ventas > 0 && cur.ventas > 0) { const dl = (cur.ventas - prv.ventas) / prv.ventas * 100; H.push({ t: dl >= 0 ? "ok" : "mal", x: "Tus ventas " + (dl >= 0 ? "suben " : "bajan ") + Math.abs(dl).toFixed(0) + "% frente al " + prevLbl + " (" + vtGerK(cur.ventas) + " vs " + vtGerK(prv.ventas) + ").", a: "reportes" }); }
+  else if (!D.hayVentas) H.push({ t: "info", x: "Aún no hay ventas registradas. Cuando vendas, aquí verás tendencias y comparativos.", a: "pos" });
+  if (ver && cur.ventas > 0 && cur.margen < 15) H.push({ t: "mal", x: "Tu margen es de " + cur.margen.toFixed(1) + "%. Revisa precios o costos de lo que más vendes.", a: "inventario" });
+  if (D.cats.length && cur.gastos > 0) { const c0 = D.cats[0]; H.push({ t: "info", x: "«" + c0.k + "» es tu mayor gasto: " + Math.round(c0.v / cur.gastos * 100) + "% (" + vtGerK(c0.v) + ").", a: "gastos" }); }
+  if (D.nVenc) H.push({ t: "mal", x: D.nVenc + " venta" + (D.nVenc > 1 ? "s" : "") + " a crédito vencida" + (D.nVenc > 1 ? "s" : "") + " por " + vtGerK(D.vencMonto) + ". Manda el recordatorio de cobro.", a: "cxcp" });
+  const topAgot = D.prods.filter(p => D.agot.some(a => a.nombre === p.k))[0]; if (topAgot) H.push({ t: "mal", x: "«" + topAgot.k + "» está entre lo que más vendes y está agotado.", a: "inventario" }); else if (D.agot.length) H.push({ t: "info", x: D.agot.length + " producto" + (D.agot.length > 1 ? "s" : "") + " agotado" + (D.agot.length > 1 ? "s" : "") + (D.bajo.length ? " y " + D.bajo.length + " bajo el mínimo" : "") + ".", a: "inventario" });
+  if (D.prods.length) H.push({ t: "ok", x: "Lo más vendido (" + periodoLbl.toLowerCase() + "): «" + D.prods[0].k + "» con " + vtGerK(D.prods[0].v) + ".", a: "inventario" });
+  const icH = { ok: "#2ee26f", mal: "#ef4444", info: "#60A5FA" };
+  const preg = q => { try { localStorage.setItem("vt_ia_modo", "ia"); } catch (e) {} window.__vtPreg = q; irA("asistente"); };
+  const pregIA = () => { try { localStorage.setItem("vt_ia_modo", "prof"); } catch (e) {} window.__vtPreg = "Hazme un análisis gerencial de mi negocio: cómo voy contra el periodo anterior, qué está funcionando, qué riesgos ves (cobranza, stock, gastos, margen) y 3 acciones concretas para esta semana."; irA("asistente"); };
+  const chip = on => ({ padding: "7px 14px", borderRadius: 20, border: "1px solid " + (on ? COLORS.green : COLORS.border), background: on ? "rgba(46,226,111,.14)" : "transparent", color: on ? COLORS.green : COLORS.text, fontSize: 12.5, fontWeight: 700, cursor: "pointer", minHeight: 36 });
+  const ahora = new Date(); const hh = String(ahora.getHours()).padStart(2, "0") + ":" + String(ahora.getMinutes()).padStart(2, "0");
+  const leg = (c, t, dash) => h("span", { style: { display: "inline-flex", alignItems: "center", gap: 5 } }, h("span", { style: { width: 14, height: 0, borderTop: "3px " + (dash ? "dashed " : "solid ") + c } }), t);
+  return h("div", { className: "vg", style: { padding: "4px 16px 30px", maxWidth: 1240, margin: "0 auto", boxSizing: "border-box" } },
+    h("style", null, VT_GER_CSS),
+    h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 10, flexWrap: "wrap", marginBottom: 12 } },
+      h("div", null, h("div", { style: { fontSize: 22, fontWeight: 800, fontFamily: COLORS.fontDisplay, letterSpacing: "-.3px" } }, "Panel gerencial"), h("div", { style: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 } }, (ctx.empresa && ctx.empresa.nombre ? ctx.empresa.nombre + " · " : "") + periodoLbl + " (" + D.R.a.slice(5) + (D.R.a !== D.R.b ? " al " + D.R.b.slice(5) : "") + ") · actualizado " + hh)),
+      h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" } }, VT_GER_PERS.map(([k, t]) => h("button", { key: k, onClick: () => setPer(k), style: chip(per === k) }, t)), adm && h("button", { onClick: onConf, "aria-label": "Configurar el inicio gerencial", style: { ...chip(false), marginLeft: 4 } }, "⚙ Configurar"))),
+    h("div", { className: "vg-k" }, kpis.map(kCard)),
+    h("div", { className: "vg-g" },
+      h("div", { key: "t", className: "vg-w", style: card }, tit("Ventas y gastos", periodoLbl.toLowerCase(), "📈"), h(VtGerTendencia, { ser: D.ser, R: D.R, ver, mensual: D.R.mensual }), h("div", { style: { display: "flex", gap: 14, fontSize: 11.5, color: COLORS.textMuted, marginTop: 8, flexWrap: "wrap" } }, leg("#2ee26f", "Ventas"), leg("#F59E0B", "Gastos", true), ver && leg("#60A5FA", "Resultado"))),
+      h("div", { key: "i", className: "vg-ai", style: { ...card, background: "linear-gradient(160deg," + COLORS.card + ",rgba(46,226,111,.07))", borderColor: "rgba(46,226,111,.35)" } }, tit("Qué revisar hoy", "automático · sin costo", "✨"),
+        h("div", { style: { display: "grid", gap: 8 } }, H.length ? H.slice(0, 5).map((x, i) => h("button", { key: i, onClick: () => irA(x.a), style: { display: "flex", gap: 9, alignItems: "flex-start", textAlign: "left", background: "transparent", border: "1px solid " + COLORS.border, borderLeft: "3px solid " + icH[x.t], borderRadius: 10, padding: "9px 10px", color: COLORS.text, cursor: "pointer", font: "inherit", fontSize: 12.5, lineHeight: 1.4 } }, h("span", { style: { flex: 1 } }, x.x), h("span", { style: { color: COLORS.textMuted } }, "›"))) : h("div", { style: { fontSize: 12.5, color: COLORS.textMuted } }, "Sin hallazgos por ahora.")),
+        h("div", { style: { fontSize: 11.5, color: COLORS.textMuted, margin: "12px 0 6px" } }, "Pregúntale al asistente:"), h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } }, ["¿Quién me debe más?", "¿Qué debo comprar?", "¿Cómo voy contra el mes pasado?"].map(q => h("button", { key: q, onClick: () => preg(q), style: { ...chip(false), fontSize: 12, padding: "6px 11px" } }, q))),
+        h("button", { onClick: pregIA, style: { ...chip(true), padding: "10px 14px", marginTop: 10, width: "100%" } }, "✨ Análisis profundo con IA"), h("div", { style: { fontSize: 11, color: COLORS.textMuted, marginTop: 5 } }, "Usa ventopoints; te avisa el costo antes.")),
+      h("div", { key: "b", className: "vg-b", style: card }, tit("Ventas vs gastos", "últimos 6 meses", "📊"), h(VtGerBarras, { meses: D.meses, ver }), h("div", { style: { display: "flex", gap: 12, fontSize: 11.5, color: COLORS.textMuted, marginTop: 6, flexWrap: "wrap" } }, leg("#2ee26f", "Ventas"), leg("#F59E0B", "Gastos"), ver && leg("#60A5FA", "Resultado"))),
+      h("div", { key: "d", className: "vg-s", style: card }, tit("Gastos por categoría", periodoLbl.toLowerCase(), "🍩"), D.cats.length ? h(VtGerDona, { datos: D.cats, total: cur.gastos || 1 }) : h("div", { style: { fontSize: 12.5, color: COLORS.textMuted, padding: "14px 0" } }, "Sin gastos registrados en este periodo.")),
+      h("div", { key: "p", className: "vg-t", style: card }, tit("Lo más vendido", periodoLbl.toLowerCase(), "🏆"), lista(D.prods, 5, vtGerK)),
+      h("div", { key: "k", className: "vg-t", style: card }, tit("Mejores clientes", periodoLbl.toLowerCase(), "🤝"), lista(D.clis, 5, vtGerK, "#60A5FA")),
+      h("div", { key: "c", className: "vg-t", style: card }, tit("Ventas por canal", periodoLbl.toLowerCase(), "🛒"), lista(D.canales, 5, vtGerK, "#A78BFA")),
+      h("div", { key: "a", className: "vg-f", style: card }, tit("Alertas de inventario", D.agot.length + " agotados · " + D.bajo.length + " bajos", "⚠️"), D.agot.length + D.bajo.length === 0 ? h("div", { style: { fontSize: 12.5, color: COLORS.green } }, "Todo en orden: sin agotados ni stock bajo.") : h("div", { style: { display: "grid", gap: 7 } }, D.agot.slice(0, 4).map(p => h("div", { key: "a" + p.nombre, style: { display: "flex", justifyContent: "space-between", fontSize: 12.5, gap: 8 } }, h("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.nombre), h("b", { style: { color: "#f87171" } }, "Agotado"))), D.bajo.slice(0, 4).map(p => h("div", { key: "b" + p.nombre, style: { display: "flex", justifyContent: "space-between", fontSize: 12.5, gap: 8 } }, h("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.nombre), h("b", { style: { color: "#F59E0B" } }, p.existencia + " pzas"))), h("button", { onClick: () => irA("inventario"), style: { ...chip(false), marginTop: 4 } }, "Ver inventario")))),
+    !ver && h("div", { style: { fontSize: 11.5, color: COLORS.textMuted, marginTop: 12 } }, "Algunos indicadores (utilidad, margen, inventario al costo) están ocultos porque tu usuario no tiene permiso para ver costos."));
+}
+function VtGerConfig({ ctx, onCerrar }) {
+  const h = React.createElement; const [cfg, setCfg] = React.useState(() => vtGerCfgLeer(ctx)); const [us, setUs] = React.useState(null); const [msg, setMsg] = React.useState(""); const [gua, setGua] = React.useState(false);
+  React.useEffect(() => { let v = true; vtGerCfgNube(ctx).then(d => { if (v && d) setCfg(vtGerMerge(d)); }); VT.api("/rest/v1/vt_usuarios?select=usuario,nombre,rol,activo&empresa_id=eq." + ctx.empresa.id).then(r => { if (v) setUs((r || []).filter(u => u.activo !== false)); }).catch(() => { if (v) setUs([]); }); return () => { v = false; }; }, []);
+  const set = p => setCfg(c => ({ ...c, ...p })); const uset = (id, p) => setCfg(c => ({ ...c, usuarios: { ...c.usuarios, [id]: { ...(c.usuarios[id] || {}), ...p } } }));
+  const sel = { ...pvInput, marginBottom: 0, padding: "7px 8px", fontSize: 13 };
+  const kp = (k) => cfg.kpis.indexOf(k) >= 0; const togK = k => set({ kpis: kp(k) ? cfg.kpis.filter(x => x !== k) : cfg.kpis.concat([k]) });
+  const guardar = async () => { setGua(true); setMsg(""); try { await vtGerCfgEscribir(ctx, cfg); setMsg("Guardado. Se aplica al abrir el inicio."); } catch (e) { setMsg("⚠ No se pudo guardar: " + e.message); } setGua(false); };
+  const fila = u => { const id = u.usuario; const c = cfg.usuarios[id] || {}; const adm = u.rol === "admin"; const acc = adm ? c.acceso !== false : c.acceso === true;
+    return h("div", { key: id, style: { border: "1px solid " + COLORS.border, borderRadius: 10, padding: "9px 10px", marginBottom: 8 } },
+      h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 } }, h("div", { style: { minWidth: 0 } }, h("div", { style: { fontWeight: 700, fontSize: 13.5 } }, u.nombre || u.usuario), h("div", { style: { fontSize: 11.5, color: COLORS.textMuted } }, (adm ? "Administrador" : "Usuario") + " · " + id)), h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexShrink: 0 } }, h("span", { style: { fontSize: 11.5, color: COLORS.textMuted } }, acc ? "Con acceso" : "Sin acceso"), vtModSwitch(acc, false, () => uset(id, { acceso: !acc })))),
+      acc && h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 } },
+        h("div", null, h("label", { style: { ...pvLabel, fontSize: 11.5 } }, "Empieza viendo"), h("select", { value: c.vista || "", onChange: e => uset(id, { vista: e.target.value }), style: sel }, h("option", { value: "" }, "Lo de la empresa (" + (cfg.defecto === "gerencial" ? "Gerencial" : "Operativo") + ")"), h("option", { value: "operativo" }, "🏪 Operativo"), h("option", { value: "gerencial" }, "📊 Gerencial"))),
+        h("div", null, h("label", { style: { ...pvLabel, fontSize: 11.5 } }, "Puede cambiar de vista"), h("select", { value: c.cambiar === false ? "no" : "si", onChange: e => uset(id, { cambiar: e.target.value !== "no" }), style: sel }, h("option", { value: "si" }, "Sí, con el interruptor"), h("option", { value: "no" }, "No, solo su vista inicial")))));
+  };
+  return h(VtHoja, { titulo: "📊 Inicio gerencial", onCerrar },
+    h("div", { style: { fontSize: 12.5, color: COLORS.textMuted, lineHeight: 1.5, marginBottom: 12 } }, "Una vista ejecutiva del negocio (ventas, gastos, cobranza, inventario y hallazgos) además del inicio de siempre. Tú decides quién la ve y con cuál empieza cada persona. Es un candado de la interfaz, igual que los demás permisos."),
+    h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 8 } }, h("div", { style: { fontWeight: 700, fontSize: 14 } }, "Activar el inicio gerencial"), vtModSwitch(cfg.activa, false, () => set({ activa: !cfg.activa }))),
+    cfg.activa && h("div", null,
+      h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 } },
+        h("div", null, h("label", { style: pvLabel }, "Vista inicial de la empresa"), h("select", { value: cfg.defecto, onChange: e => set({ defecto: e.target.value }), style: sel }, h("option", { value: "operativo" }, "🏪 Operativo (ventas y caja)"), h("option", { value: "gerencial" }, "📊 Gerencial"))),
+        h("div", null, h("label", { style: pvLabel }, "Periodo que muestra"), h("select", { value: cfg.periodo, onChange: e => set({ periodo: e.target.value }), style: sel }, VT_GER_PERS.map(([k, t]) => h("option", { key: k, value: k }, t))))),
+      h("label", { style: pvLabel }, "Indicadores que se muestran"),
+      h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 } }, VT_GER_KPIS.map(([k, t, ic]) => h("button", { key: k, onClick: () => togK(k), "aria-pressed": kp(k), style: { padding: "7px 11px", borderRadius: 18, border: "1px solid " + (kp(k) ? COLORS.green : COLORS.border), background: kp(k) ? "rgba(46,226,111,.14)" : "transparent", color: kp(k) ? COLORS.green : COLORS.text, fontSize: 12.5, cursor: "pointer", minHeight: 36 } }, (kp(k) ? "✓ " : "") + ic + " " + t))),
+      h("div", { style: { fontSize: 11.5, color: COLORS.textMuted, marginBottom: 12 } }, "Utilidad, resultado, margen e inventario solo los ve quien tiene permiso de ver costos."),
+      h("label", { style: pvLabel }, "Quién la puede ver"),
+      us === null ? h("div", { style: { fontSize: 12.5, color: COLORS.textMuted } }, "Cargando usuarios…") : us.length ? us.map(fila) : h("div", { style: { fontSize: 12.5, color: COLORS.textMuted } }, "No hay usuarios todavía.")),
+    msg && h("div", { style: { fontSize: 12.5, margin: "8px 0", color: msg[0] === "⚠" ? COLORS.red : COLORS.green } }, msg),
+    h("div", { style: { display: "flex", gap: 8, marginTop: 10 } }, vtBtn(gua ? "Guardando…" : "Guardar", guardar, "p", gua), vtBtn("Cerrar", onCerrar)));
+}
+function VtGerWrap({ ctx, datos, irA, classic }) {
+  const h = React.createElement; const [cfg, setCfg] = React.useState(() => vtGerCfgLeer(ctx)); const [, tk] = React.useState(0); const [conf, setConf] = React.useState(false);
+  React.useEffect(() => { let v = true; vtGerCfgNube(ctx).then(d => { if (v && d) setCfg(vtGerMerge(d)); }); const f = () => setCfg(vtGerCfgLeer(ctx)); window.addEventListener("vt-ger", f); return () => { v = false; window.removeEventListener("vt-ger", f); }; }, []);
+  const P = vtGerPerm(ctx, cfg); const adm = ctx.rol === "admin"; const ses = (window.VT_GER_SES = window.VT_GER_SES || {}); const sk = vtGerUid(ctx) + "@" + ((ctx.empresa && ctx.empresa.id) || "");
+  const vista = !P.acceso ? "operativo" : !P.cambiar ? P.vista : (ses[sk] || P.vista);
+  const elegir = v => { ses[sk] = v; tk(x => x + 1); };
+  const seg = (v, t) => h("button", { key: v, role: "tab", "aria-selected": vista === v, onClick: () => elegir(v), style: { padding: "8px 14px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, minHeight: 38, background: vista === v ? COLORS.green : "transparent", color: vista === v ? "#03120a" : COLORS.text } }, t);
+  const mostrarSel = P.acceso && P.cambiar; const mostrarBarra = mostrarSel || adm;
+  const barra = mostrarBarra ? h("div", { style: { display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", margin: "10px 16px 6px", maxWidth: 1208, marginLeft: "auto", marginRight: "auto", width: "calc(100% - 32px)", boxSizing: "border-box" } },
+    mostrarSel && h("div", { role: "tablist", "aria-label": "Vista del inicio", style: { display: "inline-flex", background: COLORS.card, border: "1px solid " + COLORS.border, borderRadius: 12, padding: 3, gap: 2 } }, seg("operativo", "🏪 Operativo"), seg("gerencial", "📊 Gerencial")),
+    adm && h("button", { onClick: () => setConf(true), "aria-label": "Configurar el inicio gerencial", style: { padding: "8px 12px", borderRadius: 10, border: "1px solid " + COLORS.border, background: "transparent", color: cfg.activa ? COLORS.textMuted : COLORS.amberTx, fontSize: 12.5, fontWeight: 700, cursor: "pointer", minHeight: 38 } }, cfg.activa ? "⚙" : "📊 Activar inicio gerencial")) : null;
+  return h(React.Fragment, null, barra, vista === "gerencial" ? h(VtGerencial, { ctx, datos, irA, cfg, onConf: () => setConf(true) }) : classic, conf && h(VtGerConfig, { ctx, onCerrar: () => { setConf(false); setCfg(vtGerCfgLeer(ctx)); } }));
+}
+
 function vtIntencion(txt, D) {
   const orig = String(txt || "").trim();
   const n = vtNorm(orig).replace(/[¿?¡!]/g, " ").replace(/\s+/g, " ").trim();
@@ -19039,7 +19243,7 @@ function AsistenteScreen({ datos, onGasto, irA, compacto, onVenta, onCliente, pa
     vis && usoTxt && h("div", { style: { display: "flex", gap: 16, flexWrap: "wrap", paddingBottom: 8 } }, h("button", { onClick: () => setCompraPts(true), style: { background: "transparent", border: "none", color: COLORS.amberTx, fontWeight: 700, fontSize: 12.5, cursor: "pointer", padding: 0 } }, "🛒 Comprar ventopoints"), h("button", { onClick: () => setHistIa(true), style: { background: "transparent", border: "none", color: COLORS.amberTx, fontWeight: 700, fontSize: 12.5, cursor: "pointer", padding: 0 } }, "🕘 Mis consultas")),
     histIa && h(VtIaHistorial, { empresa: (datos.ctx && datos.ctx.empresa && datos.ctx.empresa.nombre) || "Ventor", onCerrar: () => setHistIa(false), onVer: x => setMsgs(m => [...m, { r: "yo", t: x.pregunta }, { r: "bot", t: x.respuesta, acc: [], ia: true, tabla: x.tabla || null }]) }),
     alertas.length > 0 && h("div", { style: { marginBottom: 8, display: "flex", flexDirection: "column", gap: 6, maxHeight: compacto ? 110 : 200, overflowY: "auto" } }, alertas.map(al => h("div", { key: al.id, style: { border: "1px solid " + COLORS.amber, borderRadius: 10, padding: "8px 10px", fontSize: 12.5, background: COLORS.panel } }, h("div", { style: { display: "flex", gap: 6, alignItems: "flex-start" } }, h("div", { style: { flex: 1 } }, al.ico + " " + al.t), h("button", { onClick: () => { vtAlertaOcultar(al.id); setAlOff(n => n + 1); }, title: "Ocultar por hoy", style: { background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", fontSize: 15, lineHeight: 1 } }, "✕")), h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 } }, al.acc.map((a, k) => h("button", { key: k, onClick: () => { if (a.ir) irA(a.ir); else if (a.ask) enviar(a.ask); }, style: { padding: "5px 9px", borderRadius: 8, border: "1px solid " + COLORS.border, background: COLORS.card, color: COLORS.text, fontSize: 12, cursor: "pointer" } }, a.l)))))),
-    vis && h("div", { style: { display: "flex", gap: 14, alignItems: "center", marginBottom: 6, fontSize: 12 } }, h("button", { onClick: () => { const v = !hablar; setHablar(v); try { localStorage.setItem("vt_ia_voz", v ? "1" : "0"); } catch (e) {} if (!v) { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} } else { vtHablar("Voz activada. Así te voy a leer las respuestas.", m => setMsgVoz(m)); } }, style: { background: "transparent", border: "none", color: hablar ? COLORS.amberTx : COLORS.textMuted, fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 12 } }, hablar ? "🔊 Voz activada" : "🔈 Leer respuestas"), h("button", { onClick: nuevaConv, style: { background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: 0, fontSize: 12 } }, "🗑 Nueva conversación")),
+    vis && h("div", { style: { display: "flex", gap: 14, alignItems: "center", marginBottom: 6, fontSize: 12 } }, h("button", { onClick: () => { const v = !hablar; setHablar(v); try { localStorage.setItem("vt_ia_voz", v ? "1" : "0"); } catch (e) {} if (!v) { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} } else { vtHablar("Voz activada. Así te voy a leer las respuestas.", m => setMsgVoz(m)); } }, style: { background: "transparent", border: "none", color: hablar ? COLORS.amberTx : COLORS.textMuted, fontWeight: 700, cursor: "pointer", padding: "10px 6px", minHeight: 40, fontSize: 12 } }, hablar ? "🔊 Voz activada" : "🔈 Leer respuestas"), h("button", { onClick: nuevaConv, style: { background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "10px 6px", minHeight: 40, fontSize: 12 } }, "🗑 Nueva conversación")),
     (vis || msgs.length <= 1) && h("div", { style: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 8, marginBottom: 8 } }, chips.map(c => h("button", { key: c, onClick: () => { if (c === "Hazme una venta para…") { setQ("Hazme una venta para "); return; } if (c === "Hazme una cotización para…") { setQ("Hazme una cotización para "); return; } if (c === "Registra un abono…") { setQ("Registra un abono de "); return; } if (c === "Cobrar a un cliente") { enviar("Recuérdales su pago a los morosos"); return; } enviar(c); }, style: { flex: "0 0 auto", padding: "7px 12px", borderRadius: 20, border: "1px solid " + COLORS.border, background: COLORS.panel, color: COLORS.text, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, c))),
     h("div", { style: compacto ? { flex: 1, overflowY: "auto", minHeight: 0 } : { flex: 1 } }, msgs.map((m, i) => h("div", { key: i, style: { display: "flex", justifyContent: m.r === "yo" ? "flex-end" : "flex-start", marginBottom: 8 } }, h("div", { style: { maxWidth: "88%", padding: "10px 13px", borderRadius: 14, background: m.r === "yo" ? COLORS.amber : COLORS.panel, color: m.r === "yo" ? "#fff" : COLORS.text, border: m.r === "yo" ? "none" : "1px solid " + COLORS.border, fontSize: 14, lineHeight: 1.45, whiteSpace: "pre-wrap" } }, m.t, m.tabla && Array.isArray(m.tabla.columnas) && Array.isArray(m.tabla.filas) && h("div", { style: { overflowX: "auto", marginTop: 8, whiteSpace: "normal" } }, m.tabla.titulo ? h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4 } }, m.tabla.titulo) : null, h("table", { style: { borderCollapse: "collapse", fontSize: 12.5, width: "100%" } }, h("thead", null, h("tr", null, m.tabla.columnas.map((c, k) => h("th", { key: k, style: { textAlign: "left", padding: "5px 8px", borderBottom: "1px solid " + COLORS.border, color: COLORS.textMuted, fontWeight: 700, whiteSpace: "nowrap" } }, String(c))))), h("tbody", null, m.tabla.filas.slice(0, 200).map((f, ri) => h("tr", { key: ri }, (Array.isArray(f) ? f : [f]).map((c, k) => h("td", { key: k, style: { padding: "5px 8px", borderBottom: "1px solid " + COLORS.border, verticalAlign: "top" } }, c == null ? "" : String(c)))))))), m.ia && h("div", { style: { fontSize: 10.5, color: COLORS.textMuted, marginTop: 6 } }, "✨ Respuesta con IA"), m.acc && m.acc.length > 0 && h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 } }, m.acc.map((a, k) => h("button", { key: k, onClick: () => ejec(a, i), style: { padding: "7px 11px", borderRadius: 9, border: "1px solid " + COLORS.border, background: COLORS.card, color: COLORS.text, fontSize: 12.5, fontWeight: 600, cursor: "pointer" } }, a.l))), m.r === "bot" && i > 0 && !m.card && !m.welcome && !m.vivo && m.t && !(m.acc && m.acc.length) && h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 } }, [["wa", "💬 WhatsApp"], ["pdf", "📄 PDF"], ["csv", "📊 Excel"]].map(([t, l]) => h("button", { key: t, onClick: () => vtIaExport(m, t, (datos.ctx && datos.ctx.empresa && datos.ctx.empresa.nombre) || "Ventor"), style: { padding: "5px 9px", borderRadius: 8, border: "1px solid " + COLORS.border, background: COLORS.card, color: COLORS.text, fontSize: 11.5, cursor: "pointer" } }, l))), m.r === "bot" && !m.ia && !m.card && !m.welcome && i > 0 && ia && ia.disponible && !pen && !(m.acc && m.acc.length) && h("div", { style: { marginTop: 6 } }, h("button", { onClick: () => preguntarIA(i), style: { padding: 0, border: "none", background: "transparent", color: COLORS.textMuted, fontSize: 11.5, textDecoration: "underline", cursor: "pointer" } }, "✨ Preguntarle a la IA"))))), pen && h("div", { style: { fontSize: 13, color: COLORS.textMuted, padding: "4px 6px" } }, (prof ? "Analizando toda tu base… (" + cPr + " pts)" : usaIa ? "Pensando… (" + cIa + " pt si responde la IA)" : "Pensando…")), h("div", { style: { height: 6 } })),
     msgVoz && h("div", { style: { fontSize: 12, color: COLORS.amberTx, paddingTop: 4 } }, msgVoz), h("div", { ref: fin, style: { display: "flex", gap: 8, paddingTop: 8, paddingBottom: compacto ? 2 : 12, scrollMarginBottom: 12 } }, h("input", { id: "vt-ia-in", value: q, onChange: e => setQ(e.target.value), onKeyDown: e => { if (e.key === "Enter") enviar(); }, placeholder: sinNivel ? "Sin permiso en este nivel" : prof ? "Ej. ventas por mes de este año, top clientes…" : "Escribe o habla: «hazme una venta para…»", disabled: sinNivel, style: { ...inputStyle, flex: 1 } }), h("button", { onClick: dictar, title: "Hablar", style: { padding: "10px 12px", borderRadius: 10, border: "1px solid " + (oyendo ? COLORS.red : COLORS.border), background: oyendo ? COLORS.red : "transparent", color: oyendo ? "#fff" : COLORS.text, fontSize: 16, cursor: "pointer" } }, oyendo ? "⏹" : "🎤"), h("button", { onClick: () => enviar(), style: { padding: "10px 16px", borderRadius: 10, border: "none", background: COLORS.amber, color: "#fff", fontWeight: 700, cursor: "pointer" } }, "Enviar")));
