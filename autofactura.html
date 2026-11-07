@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Autofactura</title><style>
+:root{--bg:#f6f6f7;--card:#fff;--tx:#18181b;--mu:#6b6b73;--bd:#dcdce0;--rd:#d7263d;--ok:#0f9d68}
+@media(prefers-color-scheme:dark){:root{--bg:#0e0e10;--card:#18181b;--tx:#f4f4f5;--mu:#a1a1aa;--bd:#2e2e33;--ok:#34d399}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:30px}
+header{padding:18px 16px;background:var(--rd);color:#fff}h1{font-size:20px;margin:0}.sub{font-size:13px;opacity:.9;margin-top:3px}
+.w{max-width:520px;margin:0 auto;padding:0 16px}.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:12px 0}
+input,select{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px;font-family:inherit;margin-bottom:10px}
+label{display:block;font-size:12.5px;color:var(--mu);margin:0 0 4px}
+.btn{display:block;width:100%;padding:13px;border:0;border-radius:9px;background:var(--rd);color:#fff;font-size:15px;font-weight:700;cursor:pointer;text-align:center}
+.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--bd);margin-top:8px}.btn:disabled{opacity:.5}
+.err{color:var(--rd);font-size:14px;margin:8px 0}.ok{color:var(--ok);font-weight:700}.mu{color:var(--mu);font-size:13px}
+</style></head><body>
+<header><div class="w" style="padding:0"><h1 id="t">Autofactura</h1><div class="sub">Factura tu compra con los datos de tu ticket</div></div></header>
+<div class="w" id="app"><div class="card">Cargando…</div></div>
+<script>
+const KEY="sb_publishable_p0-ZWH8XPPyC_KSTOzG9vw_OENVq8o-";
+const API="https://rhdsbymoxllfegderalu.supabase.co/functions/v1/ventor-autofactura";
+const REG=[["601","General de Ley Personas Morales"],["603","Personas Morales sin fines de lucro"],["605","Sueldos y salarios"],["606","Arrendamiento"],["607","Enajenación o adquisición de bienes"],["608","Demás ingresos"],["610","Residentes en el extranjero"],["611","Dividendos"],["612","Personas Físicas con actividad empresarial"],["614","Intereses"],["615","Premios"],["616","Sin obligaciones fiscales"],["620","Sociedades cooperativas"],["621","Incorporación Fiscal"],["622","Actividades agrícolas, ganaderas, silvícolas y pesqueras"],["625","Plataformas tecnológicas"],["626","RESICO"]];
+const USO=[["G01","Adquisición de mercancías"],["G03","Gastos en general"],["S01","Sin efectos fiscales"],["I01","Construcciones"],["I04","Equipo de cómputo"],["D01","Honorarios médicos"],["P01","Por definir"]];
+const Q=new URLSearchParams(location.search);const E=String(Q.get("e")||"").toLowerCase();
+const app=document.getElementById("app");
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=id=>document.getElementById(id);
+let S={emp:"",dias:30,cod:String(Q.get("c")||"").toUpperCase(),total:"",pre:{},fact:null,rfc:""};
+async function call(o){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({e:E,...o})});const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error||("Error "+r.status));e.ya=j.ya;throw e}return j}
+function opts(a,v){return a.map(x=>`<option value="${x[0]}"${x[0]===v?" selected":""}>${x[0]} · ${esc(x[1])}</option>`).join("")}
+function pasoCodigo(m){app.innerHTML=`<div class="card"><b>${esc(S.emp)}</b><p class="mu">Tienes ${S.dias} días desde tu compra para facturar. Captura el código y el total que aparecen en tu ticket.</p>
+<label>Código de venta</label><input id="cod" value="${esc(S.cod)}" autocapitalize="characters" maxlength="12">
+<label>Total del ticket</label><input id="tot" inputmode="decimal" placeholder="0.00" value="${esc(S.total)}">
+<div class="err" id="m">${esc(m||"")}</div><button class="btn" id="go">Continuar</button></div>`;
+$("go").onclick=async()=>{S.cod=$("cod").value.trim().toUpperCase();S.total=$("tot").value.replace(/[$,\s]/g,"");$("go").disabled=true;$("m").textContent="";
+try{const j=await call({accion:"venta",c:S.cod,total:Number(S.total)});S.pre=j.pre||{};if(j.facturada)return pasoDescarga(true);pasoDatos()}catch(e){$("go").disabled=false;if(e.ya)return pasoDescarga(true);$("m").textContent=e.message}}}
+function pasoDatos(m){let g={};try{g=JSON.parse(localStorage.getItem("vt_af_datos")||"{}")}catch(e){}
+const p=Object.assign({},g,S.pre.rfc?S.pre:{});
+app.innerHTML=`<div class="card"><b>Tus datos fiscales</b><p class="mu">Revísalos y corrígelos si hace falta. Deben coincidir con tu Constancia de Situación Fiscal.</p>
+<label>RFC</label><input id="rfc" value="${esc(p.rfc||"")}" autocapitalize="characters" maxlength="13">
+<label>Razón social / nombre (como en tu constancia, sin régimen de capital)</label><input id="nom" value="${esc(p.nombre||"")}">
+<label>Régimen fiscal</label><select id="reg">${opts(REG,p.regimen||"612")}</select>
+<label>Código postal fiscal</label><input id="cp" inputmode="numeric" maxlength="5" value="${esc(p.cp||"")}">
+<label>Uso de CFDI</label><select id="uso">${opts(USO,p.uso||"G03")}</select>
+<label>Correo (aquí te enviamos la factura)</label><input id="em" type="email" value="${esc(p.email||"")}">
+<div class="err" id="m">${esc(m||"")}</div><button class="btn" id="go">Generar factura</button><button class="btn sec" id="bk">Atrás</button></div>`;
+$("bk").onclick=()=>pasoCodigo();
+$("go").onclick=async()=>{const d={rfc:$("rfc").value.trim().toUpperCase(),nombre:$("nom").value.trim(),regimen:$("reg").value,cp:$("cp").value.trim(),uso:$("uso").value,email:$("em").value.trim()};
+$("go").disabled=true;$("go").textContent="Timbrando…";$("m").textContent="";
+try{const j=await call({accion:"facturar",c:S.cod,total:Number(S.total),receptor:{rfc:d.rfc,nombre:d.nombre,regimen:d.regimen,cp:d.cp,uso:d.uso},email:d.email});
+S.rfc=d.rfc;S.fact=j;try{localStorage.setItem("vt_af_datos",JSON.stringify(d))}catch(e){}pasoDescarga(false)}catch(e){$("go").disabled=false;$("go").textContent="Generar factura";if(e.ya)return pasoDescarga(true);$("m").textContent=e.message}}}
+function pasoDescarga(ya){let r=S.rfc;if(!r){try{r=(JSON.parse(localStorage.getItem("vt_af_datos")||"{}").rfc)||""}catch(e){}}
+app.innerHTML=`<div class="card"><div class="ok" style="font-size:18px">${ya?"Esta venta ya está facturada":"¡Factura generada!"}</div>
+${S.fact&&S.fact.uuid?`<p class="mu">UUID: ${esc(S.fact.uuid)}</p>`:""}${S.fact&&S.fact.enviado?`<p class="mu">También la enviamos a tu correo.</p>`:""}
+${ya?`<label>Para descargarla, confirma el RFC con el que se facturó</label><input id="rf" value="${esc(r)}" autocapitalize="characters" maxlength="13">`:""}
+<div class="err" id="m"></div><button class="btn" id="pdf">Descargar PDF</button><button class="btn sec" id="xml">Descargar XML</button></div>`;
+const bajar=async f=>{const rfc=(ya?$("rf").value:r).trim().toUpperCase();$("m").textContent="";
+try{const j=await call({accion:"descargar",c:S.cod,total:Number(S.total),rfc,formato:f});const bin=atob(j.contenido);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([u],{type:f==="pdf"?"application/pdf":"application/xml"}));a.download=j.nombre;document.body.appendChild(a);a.click();a.remove()}catch(e){$("m").textContent=e.message}};
+$("pdf").onclick=()=>bajar("pdf");$("xml").onclick=()=>bajar("xml")}
+(async()=>{if(!E){app.innerHTML='<div class="card err">Enlace incompleto. Escanea de nuevo el QR de tu ticket.</div>';return}
+try{const j=await call({accion:"info"});S.emp=j.empresa;S.dias=j.dias;$("t").textContent="Autofactura · "+j.empresa;pasoCodigo()}catch(e){app.innerHTML='<div class="card err">'+esc(e.message)+'</div>'}})();
+</script></body></html>
