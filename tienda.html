@@ -90,7 +90,7 @@ function pintar(){
   <div class="w"><input id="busq" placeholder="Buscar producto…" value="${esc(q)}" style="margin-top:12px;margin-bottom:0">
   <div class="chips">${cats.map(c=>`<div class="chip ${c===cat?'on':''}" data-c="${esc(c)}">${c==="todas"?"Todo":esc((D.categorias&&D.categorias[c])||cap(c))}</div>`).join("")}</div>
   <div class="grid">${itemsT.map(p=>{if(p.G)return cardG(p.G);const c=cart[p.id]||0;return `<div class="p"><div class="ph">${fotosHtml(p)}</div><div class="pi"><div class="pn">${esc(p.nombre)}</div><div class="pp">${$m(p.precio)}${p.unidad&&p.unidad!=="pza"?" / "+esc(p.unidad):""}</div>${p.disponible<=0?'<div class="ag">Agotado</div>':c?`<div class="qty"><button data-m="${p.id}">−</button><b>${qn(p,c)}</b><button data-p="${p.id}">+</button></div>`:`<button class="btn" data-p="${p.id}">Agregar</button>`}</div></div>`}).join("")||'<p class="sub">No hay productos con ese filtro.</p>'}</div></div>
-  <div class="pie">${MESA?"":`<a href="?e=${esc(E)}&seg=1" style="color:inherit">Seguir mi pedido</a> · `}${MESA?"Menú":"Tienda"} con tecnología Impulsor Ventor</div>
+  <div class="pie">${MESA?"":`<a href="?e=${esc(E)}&seg=1" style="color:inherit">Seguir mi pedido</a> · `}${MESA?"Menú":"Tienda"} con tecnología Ventrolia</div>
   ${n?`<div class="bar"><button class="btn" id="ver">${MESA?"Ver mi pedido":"Ver carrito"} · ${n} artículo${n>1?"s":""} · ${$m(sub())}</button></div>`:""}
   ${hoja?hojaHtml():""}`;
   const b=$("#busq");b.oninput=e=>{q=e.target.value;pintar();};if(enf){b.focus();b.setSelectionRange(q.length,q.length);}
