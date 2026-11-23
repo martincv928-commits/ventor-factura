@@ -41,7 +41,7 @@ function pinta(){
   h.push('<div class="card"><b>Subir factura (XML)</b><div class="mu" style="margin:4px 0 8px">Sube el XML timbrado. Si corresponde a una orden, escribe su folio.</div><label>Folio de la orden (opcional)</label><input id="oc" placeholder="OC-0001"><input type="file" id="xml" accept=".xml,text/xml" style="padding:8px"><button class="btn" onclick="subir()">Subir factura</button></div>');
   D.facturas.forEach(f=>h.push('<div class="card"><div class="row"><b>'+fd(f.fecha||f.subida)+(f.oc?' · '+esc(f.oc):'')+'</b><b>'+money(f.total)+'</b></div><div class="mu" style="word-break:break-all">UUID '+esc(f.uuid)+' · '+(f.estado==="importada"?'<span class="ok">registrada</span>':'recibida')+'</div></div>'));
  }
- h.push('</div><div class="pie">Portal de proveedor · Ventor</div>');app.innerHTML=h.join('');
+ h.push('</div><div class="pie">Portal de proveedor · Ventrolia</div>');app.innerHTML=h.join('');
 }
 async function confirmar(id){const fe=prompt("Fecha estimada de entrega (AAAA-MM-DD), opcional:","");const nota=prompt("Comentario (opcional):","")||"";try{await call({accion:"confirmar",id,fechaEntrega:fe||"",nota});msg="Orden confirmada. ¡Gracias!";D=await call({accion:"ver"})}catch(e){msg="⚠ "+e.message}pinta()}
 async function subir(){const f=document.getElementById("xml").files[0];if(!f){msg="⚠ Elige el archivo XML";return pinta()}const xml=await f.text();try{const r=await call({accion:"factura",xml,oc:document.getElementById("oc").value});msg="Factura recibida por "+money(r.total)+".";D=await call({accion:"ver"})}catch(e){msg="⚠ "+e.message}pinta()}

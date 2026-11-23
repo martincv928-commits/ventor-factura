@@ -128,7 +128,7 @@ function pintar(){
   else if(especial)cuerpo=`<section><div class="w" id="vista"><div class="cargando">Cargando…</div></div></section>`;
   else cuerpo=(pg?(pg.bloques||[]):[]).map(bloque).join("")||`<section><div class="w cn"><h2>${esc(nombre)}</h2></div></section>`;
   const redes=c.redes||{};
-  $.innerHTML=`<header><div class="nv"><a class="lg" href="#/${esc((pgs[0]||{}).id||"")}">${img(c.logo)?`<img src="${esc(c.logo)}" alt="">`:""}<span>${esc(nombre)}</span></a><button class="bg" onclick="document.querySelector('.mn').classList.toggle('ab')" aria-label="Menú">☰</button><nav class="mn">${menu}</nav></div></header>${cuerpo}<footer>${[["fb","Facebook"],["ig","Instagram"],["tt","TikTok"]].filter(x=>okUrl(redes[x[0]])).map(x=>`<a target="_blank" rel="noopener" href="${esc(redes[x[0]])}">${x[1]}</a>`).join("")}<div style="margin-top:8px">${esc(c.pie||("© "+new Date().getFullYear()+" "+nombre))}</div><div style="margin-top:6px;font-size:12px">Sitio hecho con Ventor</div></footer>`;
+  $.innerHTML=`<header><div class="nv"><a class="lg" href="#/${esc((pgs[0]||{}).id||"")}">${img(c.logo)?`<img src="${esc(c.logo)}" alt="">`:""}<span>${esc(nombre)}</span></a><button class="bg" onclick="document.querySelector('.mn').classList.toggle('ab')" aria-label="Menú">☰</button><nav class="mn">${menu}</nav></div></header>${cuerpo}<footer>${[["fb","Facebook"],["ig","Instagram"],["tt","TikTok"]].filter(x=>okUrl(redes[x[0]])).map(x=>`<a target="_blank" rel="noopener" href="${esc(redes[x[0]])}">${x[1]}</a>`).join("")}<div style="margin-top:8px">${esc(c.pie||("© "+new Date().getFullYear()+" "+nombre))}</div><div style="margin-top:6px;font-size:12px">Sitio hecho con Ventrolia</div></footer>`;
   window.scrollTo(0,0);
   seoCliente(c,r,pg);
   fixLinks();

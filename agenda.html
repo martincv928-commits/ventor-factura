@@ -45,7 +45,7 @@ function pintar(){
   ${S.hora?`<h2>Tus datos</h2><label>Nombre</label><input id="n" value="${esc(S.nombre)}" autocomplete="name"><label>Teléfono / WhatsApp</label><input id="t" value="${esc(S.tel)}" inputmode="tel" autocomplete="tel"><label>Nota (opcional)</label><input id="o" value="${esc(S.nota)}">`:""}
   ${msg?'<p class="err">'+esc(msg)+'</p>':""}
   ${S.hora?`<button class="btn" id="ok" ${puede&&!busy?"":"disabled"}>${busy?"Reservando…":"Reservar "+S.fecha+" "+S.hora+(sv&&sv.precio?" · "+$m(sv.precio):"")}</button>`:""}
-  <div class="pie">Reservas con tecnología Impulsor Ventor</div></div>`;
+  <div class="pie">Reservas con tecnología Ventrolia</div></div>`;
   app.querySelectorAll("[data-s]").forEach(x=>x.onclick=()=>{S.serv=x.dataset.s;msg="";if(S.fecha)cargarHoras();else pintar();});
   app.querySelectorAll("[data-r]").forEach(x=>x.onclick=()=>{S.rec=x.dataset.r;msg="";if(S.fecha)cargarHoras();else pintar();});
   app.querySelectorAll("[data-f]").forEach(x=>x.onclick=()=>{S.fecha=x.dataset.f;msg="";cargarHoras();});
